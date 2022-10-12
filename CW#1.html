@@ -70,20 +70,16 @@
         }
         document.getElementById("button").addEventListener("click", () => {
             doksanYediArttir();
-        })
+        });
         function doksanYediArttir() {
-
-            let iban = document.getElementById("kimlik").value;
-            iban = iban.replace(/\s/g, '');
-
-            if (verifyTC(iban)) {
-
+            let iban = kimlik.value.replaceAll(/\s/g, '');
+            console.log("benim iban:", iban, "result:", verifyIBAN(iban));
+            if (verifyIBAN(iban)) {
+                iban = iban.replace("TR", "");
                 let elde = 0;
                 let number = "";
-
                 for (let i = 0; i < iban.length; i++) {
                     let digit = parseInt(iban[iban.length - 1 - i]);
-
                     if (i == 0) { // 7
                         if (digit + 7 > 9) {
                             number = ((digit + 7) % 10) + number;
@@ -93,7 +89,6 @@
                             elde = 0;
                         }
                     }
-
                     else if (i == 1) { // 9
                         if (digit + 9 + elde > 9) {
                             number = ((digit + 9 + elde) % 10) + number;
@@ -103,7 +98,6 @@
                             elde = 0;
                         }
                     }
-
                     else {
                         if (digit + elde > 9) {
                             number = ((digit + elde) % 10) + number;
@@ -113,14 +107,10 @@
                             elde = 0;
                         }
                     }
-                    console.log(number);
                 }
-
-                document.getElementById("kimlik").value = number;
-                
+                document.getElementById("kimlik").value = "TR" + number;
             }
-
-
+            report();
         }
 
         function verifyTC(s) {
@@ -152,14 +142,16 @@
                 if (t === true) t = 'TC ✓'
             } else {
                 t = verifyIBAN(v) ? 'IBAN ✓' : 'hatalı'
+                console.log("hoca iban: ", v, " result: ", verifyIBAN(v));
             }
             out.innerText += '\n' + v + ' ' + t
             console.log(v, t)
         }
+        
         title.innerText = document.title
         sample.innerText = verifyIBAN + '\n' + report
-        kimlik.onchange = report
-        kimlik.value = '212 212 212 72'
+        kimlik.onchange = report()
+        kimlik.value = 'TR14 0021 0000 0000 2164 7000 01'
         report()
     </script>
     <script src="/JS/navbar.js"></script>
