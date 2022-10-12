@@ -1,4 +1,5 @@
 ---
-title: Welcome to my blog
+title: deneme
+description: deneme bir iki
 ---
 
