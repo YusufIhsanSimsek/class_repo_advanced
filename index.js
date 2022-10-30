@@ -1,13 +1,13 @@
 // .
 var classesToChange = ["body", "background_image", "panel", "seperator", "inner_panel", "link", "photo", "info", "link_2"];
 
-window.addEventListener("load", async () => {
-    await makeResponsive();
+window.addEventListener("load", () => {
+    makeResponsive();
     scaleBackgroundImage();
 });
 
 
-async function makeResponsive() {
+function makeResponsive() {
   if (isMobile()) {
     classesToChange.forEach(elementsClassName => {
         let collection = document.getElementsByClassName(elementsClassName);
