@@ -167,7 +167,7 @@
   flex-direction: column;
 
   font-family: monospace;
-  font-size: 14px;
+  font-size: 16px;
   color: rgba(180, 180, 180, 1);
   font-weight: bold;
 
@@ -188,7 +188,7 @@
 }
 
 .link_mobile {
-  font-size: 18px;
+  font-size: 14px;
   color: rgba(150, 150, 150, 1);
   text-decoration: none;
   font-weight: normal;
@@ -206,7 +206,7 @@
 }
 
 .info_mobile {
-  font-size: 18px;
+  font-size: 14px;
   color: rgba(150, 150, 150, 1);
   font-weight: normal;
   padding: 5px 0px 5px 0px;
@@ -215,7 +215,7 @@
 }
 
 .link_2_mobile {
-  font-size: 18px;
+  font-size: 14px;
   color: rgba(150, 150, 150, 1);
   font-weight: normal;
   padding: 5px 0px 5px 0px;
