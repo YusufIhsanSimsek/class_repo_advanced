@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/class_repo_advanced/assets/main.css">
+    <link type="application/atom+xml" rel="alternate" href="https://yusufihsansimsek.github.io/class_repo_advanced/feed.xml" title="Yusuf Ihsan Simsek Private Repository" />
+</head>
+
+<body>
+    <header class="site-header" role="banner">
+
+        <div class="wrapper"><a class="site-title" rel="author" href="/class_repo_advanced/">Yusuf Ihsan Simsek Private Repository</a>
+            <nav class="site-nav">
+                <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+                <label for="nav-trigger">
+                    <span class="menu-icon">
+                        <svg viewBox="0 0 18 15" width="18px" height="15px">
+                            <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z" />
+                        </svg>
+                    </span>
+                </label>
+
+                <div class="trigger"><a class="page-link" href="/class_repo_advanced/">asd</a></div>
+            </nav>
+        </div>
+    </header>
+    <main class="page-content" aria-label="Content">
+        <div class="wrapper">
+            <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+                <header class="post-header">
+                    <h1 class="post-title p-name" itemprop="name headline">CW5</h1>
+                    <p class="post-meta">
+                        <time class="dt-published" datetime="2022-11-03T00:00:00+00:00" itemprop="datePublished">Nov 3, 2022
+                        </time>
+                    </p>
+                </header>
+
+                <div class="post-content e-content" itemprop="articleBody">
+                    <p>&lt;!DOCTYPE html&gt;
+                        <!-- saved from url=(0045)https://blm305.github.io/2022/work/fetch.html -->
+                    </p>
+                    <html lang="en-US">
+
+                    <head>
+                        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+                        <meta name="viewport" content="width=device-width" />
+                        <link rel="icon" href="https://blm-fsmvu.github.io/305/images/icon192.png" />
+                        <title>Yusuf Ihsan Simsek CW5 </title>
+
+                        <style>
+                            /* CSS comment */
+                            body {
+                                max-width: 440px;
+                            }
+
+                            #url {
+                                width: 190px;
+                            }
+
+                            span,
+                            #url {
+                                color: blue;
+                            }
+                        </style>
+                    </head>
+
+                    <body>
+                        <!-- HTML comment: Modify all items marked xxx -->
+
+                        <h2 id="title" title="Put your name here">Yusuf İhsan Şimşek</h2>
+                        <p title="navigator.platform">
+                            Platform: <span id="plat">xxx</span>
+                        </p>
+                        <p title="Battery level (integer)">
+                            Battery level: <span id="lev">xxx</span>
+                        </p>
+                        <p title="Latitude/Longitude (4 digits)">
+                            Location: <span id="loc"></span>
+                        </p>
+                        <p title="Does the URL exist?">
+                            URL <input style="width: 275px;" type="url" id="url" value="https://api.github.com/users/yusufihsansimsek" onchange="check()" /> <span id="resp">OK</span>
+                        </p>
+                        <p title="Is online?">
+                            Online Status: <span id="onl">xxx</span>
+                        </p>
+                        <p title="Pressed Keys?">
+                            Pressed Keys: <span id="keys">xxx</span>
+                        </p>
+                        <hr />
+                        <b>Sample code</b>
+                        <pre id="sample">function init() {<br />//complete the code below<br />    plat.innerText = 'xxx';<br />    navigator.geolocation<br />      .getCurrentPosition(p =&gt;<br />        loc.innerText = 'xxx'<br />      );<br />    navigator.getBattery().then(b =&gt;<br />        lev.innerText = 'xxx'<br />      );<br />    check()<br />}<br />function check() {<br />//complete the code below<br />    fetch(url.value).then(r =&gt; <br />      resp.innerText = r.ok? 'OK' : 'xxx'<br />    ).catch(e =&gt; <br />      resp.innerText = e<br />    )<br />}</pre>
+
+                        <hr />
+
+                        <script>
+                            "use strict";
+                            function init() {
+                                //complete the code below
+                                plat.innerText = navigator.platform;
+                                navigator.geolocation
+                                    .getCurrentPosition(p =>
+                                        loc.innerText = p.coords.latitude.toFixed(4)
+                                        + " / " + p.coords.longitude.toFixed(4)
+                                    );
+                                navigator.getBattery().then(b => {
+                                    lev.innerText = (b.level * 100).toFixed(0) + "% - "
+                                        + (b.charging ? "charging" : "discharging") + " - "
+                                        + (new Date(b.dischargingTime * 1000).toISOString().slice(11, 19));
+
+                                    b.addEventListener('chargingchange', () => {
+                                        lev.innerText = (b.level * 100).toFixed(0) + "% - "
+                                            + (b.charging ? "charging" : "discharging") + " - "
+                                            + (new Date(b.dischargingTime * 1000).toISOString().slice(11, 19));
+                                    });
+
+                                    b.addEventListener('levelchange', () => {
+                                        lev.innerText = (b.level * 100).toFixed(0) + "% - "
+                                            + (b.charging ? "charging" : "discharging") + " - "
+                                            + (new Date(b.dischargingTime * 1000).toISOString().slice(11, 19));
+                                    });
+                                });
+
+                                document.getElementById('onl').innerText = (navigator.onLine ? "online" : "offline");
+                                window.addEventListener('online', () => {
+                                    document.getElementById('onl').innerText = "online";
+                                });
+                                window.addEventListener('offline', () => {
+                                    document.getElementById('onl').innerText = "offline";
+                                });
+
+
+
+                                let keys = [];
+
+                                window.addEventListener('keydown', (event) => {
+                                    if (!keys.includes(event.key)) {
+                                        keys.push(event.key);
+                                    }
+                                    document.getElementById('keys').innerText = keys.toString() + "";
+                                });
+                                window.addEventListener('keyup', (event) => {
+                                    keys.pop(event.key);
+                                    document.getElementById('keys').innerText = keys.toString() + "";
+                                });
+                                check()
+                            }
+                            function check() {
+                                //complete the code below
+                                fetch(url.value).then(r =>
+                                    resp.innerText = r.ok ? 'OK' : 'NOT OK'
+                                ).catch(e =>
+                                    resp.innerText = e
+                                )
+                            }
+
+
+                            title.innerText = document.title;
+                            sample.innerText = init + '\n' + check;
+                            init();
+                        </script>
+
+                    </body>
+
+                    </html>
+
+                </div><a class="u-url" href="/class_repo_advanced/2022/11/03/CW5.html" hidden></a>
+            </article>
+
+        </div>
+    </main>
+    <footer class="site-footer h-card">
+        <data class="u-url" href="/class_repo_advanced/"></data>
+
+        <div class="wrapper">
+
+            <h2 class="footer-heading">Yusuf Ihsan Simsek Private Repository</h2>
+
+            <div class="footer-col-wrapper">
+                <div class="footer-col footer-col-1">
+                    <ul class="contact-list">
+                        <li class="p-name">Yusuf Ihsan Simsek</li>
+                    </ul>
+                </div>
+
+                <div class="footer-col footer-col-2">
+                    <ul class="social-media-list"></ul>
+                </div>
+
+                <div class="footer-col footer-col-3">
+                    <p>Yusuf Ihsan Simsek Private Repository</p>
+                </div>
+            </div>
+
+        </div>
+
+    </footer>
+</body>
+
+</html>
