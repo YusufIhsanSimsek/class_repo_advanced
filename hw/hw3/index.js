@@ -45,11 +45,14 @@ function addListenersToButtons() {
                     break;
                 case "stop":
                     inProgress = false;
+                    currentImageIndex = 0;
+                    window.cancelAnimationFrame(animate);
+                    clearCanvas();
                     buttons.get('start').disabled = false;
                     buttons.get('pause').disabled = true;
                     buttons.get('stop').disabled = true;
-                    buttons.get('next').disabled = false;
-                    buttons.get('prev').disabled = false;
+                    buttons.get('next').disabled = true;
+                    buttons.get('prev').disabled = true;
                     break;
                 case "next":
                     currentImageIndex = currentImageIndex >= images.length - 1 ? 0 : currentImageIndex + 1;
@@ -85,6 +88,10 @@ function animate() {
 function drawImage(image) {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, (canvas.width - image.width) / 2, (canvas.height - image.height) / 2);
+}
+
+function clearCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 async function getSpriteImages() {
