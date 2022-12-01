@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="katman_2" data-name="katman 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 395.59 453.08">
+  <defs>
+    <style>
+      .cls-1 {
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1" data-name="Layer 1">
+    <path class="cls-1" d="M282.76,35.08V0h69.87V117.52h-24.01l-32.64,46.14v127.36l32.64,46.33h24.01v46.8h42.95v68.93H0v-68.93H43.05v-46.8h22.6l33.86-46.33v-127.36l-33.48-46.14h-22.98V0H111.51V35.08h37.98V0h95.76V35.08h37.51Zm47.17,50.83v-11.63H66.31v11.63H329.94Zm0,285.29v-11.63H66.31v11.63H329.94ZM101.66,120.7l8.63,11.63h175.57l8.35-11.63H101.66Zm192.54,204.36l-8.35-11.63H110.29l-8.63,11.63h192.54Z"/>
+  </g>
+</svg>

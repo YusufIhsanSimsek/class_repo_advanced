@@ -1,0 +1,102 @@
+#body {
+    background-color: #a69b97;
+    margin: 0 auto;
+    height: 205vh;
+    overflow: hidden;
+}
+
+#chessBoard {
+    margin: 0 auto;
+    margin-top: 45vh;
+    border-spacing: 0px;
+    border-collapse: collapse;
+    text-indent: 0;
+    border: none;
+    box-shadow: 5px 5px 50px 5px black;
+}
+
+.squares {
+    margin: 0;
+    padding: 1.5vh;
+    width: 7vh;
+    height: 7vh;
+    object-fit: contain;
+    transition: filter 200ms ease-out;
+}
+
+.squares:hover {
+    filter: brightness(0.6);
+}
+
+.rows {
+    margin: 0;
+    padding: 0;
+    height: 10vh;
+}
+
+#attribution {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    margin-bottom: 5vh;
+    font-family: monospace;
+    text-decoration: none;
+    font-size: 10px;
+    color: #3e2723;
+    margin-top: 4vh;
+}
+
+.firstText {
+    margin: 0 auto;
+    font-family: monospace;
+    color: #3e2723;
+    text-align: center;
+    margin-top: 5vh;
+    font-size: 220px;
+    font-weight: 900;
+    opacity: 0;
+    transition: opacity 1500ms ease-out, transform 1000ms ease-out;
+}
+
+.secondText {
+    margin: 0 auto;
+    font-family: monospace;
+    color: #3e2723;
+    text-align: center;
+    font-size: 40px;
+    font-weight: 100;
+    opacity: 0;
+    transition: opacity 1500ms ease-out, transform 1000ms ease-out;
+}
+
+.startAnim {
+    opacity: 1;
+    transform: translateY(5vh);
+}
+
+.button {
+    display: flex;
+    margin: 0 auto;
+    margin-top: 15vh;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    width: 200px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 40px;
+    border: 3px solid #3e2723;
+    font-family: monospace;
+    font-size: 20px;
+    color: #3e2723;
+    opacity: 0;
+    transition: box-shadow 500ms ease, opacity 1000ms ease-out, transform 1500ms ease-out;
+}
+
+.startAnimButton {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.button:hover {
+    box-shadow: 2px 2px 20px 2px #6a4f4b;
+}
