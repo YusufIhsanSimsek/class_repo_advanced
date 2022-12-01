@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <link rel="icon" href="/JS/images/JS.png">
+    <title>GitHub Users</title>
+    <style>
+        body {
+            max-width: 440px;
+        }
+
+        pre {
+            overflow-x: auto;
+        }
+
+        #out {
+            color: blue;
+        }
+
+        #err {
+            color: red;
+        }
+
+        #repoList {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: smaller;
+            color: initial;
+        }
+
+        #lim {
+            position: absolute;
+            top: 40px;
+            right: 5px;
+            font-family: Verdana, Geneva, sans-serif;
+            font-size: smaller;
+        }
+        .div {
+            display: flex;
+            flex-direction: column;
+            text-overflow: wrap;
+            align-items: left;
+            border: 2px solid black;
+            border-radius: 15px;
+            padding: 15px;
+            inline-size: 400px;
+        }
+
+        .text {
+            font-family: monospace;
+            font-size: 1em;
+            text-decoration: none;
+            color: black;
+            text-overflow: wrap;
+        }
+
+        #avatar{
+            display: flex;
+            border-radius: 50px;
+            width: 100px;
+            height: 100px;
+            flex-direction: row;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        #repoName {
+            font-weight: 900;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2 id=title></h2>
+    <input type=search id=usr value=yusufihsansimsek>
+    <button id="search" onclick="readUser()">search</button>
+    <p id=out class="div">
+        <img id=avatar alt="Avatar for the selected user">
+        <br>
+        <span id=repoName class="text"></span>
+        <br>
+        <a id=repoLink class="text" target="NewTab"></a>
+        <br>
+        <span id=repoCount class="text"></span>
+        <span id=repoList class="text"></span>
+        <br>
+        <span id="company" class="text"></span>
+        <br>
+        <span id="bio" class="text"></span>
+        <br>
+        <span id="twitter" class="text"></span>
+        <br>
+        <span id="location" class="text"></span>
+        <br>
+        <span id="blog" class="text"></span>
+    </p>
+    <p id=err></p>
+    <div id=lim title="Rate used / Rate limit"></div>
+    <hr/>
+    <b>Sample code</b>
+    <pre id=sample></pre>
+    <hr/>
+
+    <script>
+        "use strict";
+        function error(e) {
+            err.innerText = e; console.error(e)
+            out.hidden = 1; err.hidden = 0
+            showRateLimit()
+        }
+        
+        function exception(s) {
+            switch (s) {
+                case 403:
+                    throw 'Rate limit exceeded'
+                case 404:
+                    throw usr.value + ' not found'
+                default:
+                    throw 'Status ' + s
+            }
+        }
+        
+        async function toJSON(url) {
+            try {
+                let r = await fetch(url)
+                if (!r.ok) exception(r.status)
+                return r.json()
+            } catch (e) {
+                error(e)
+            }
+        }
+        
+        async function readUser() {
+            const URL = "https://api.github.com/users/"
+            let u = await toJSON(URL + usr.value)
+            if (!u || !u.login) return
+            console.log(u);
+            out.hidden = 0; err.hidden = 1
+            //start with the avatar
+            avatar.src = u.avatar_url
+            //name and location
+            let s = (u.name || u.login)
+            if (u.location) s += ""
+            repoName.innerText = s;
+            //link to GitHub 
+            let h = "Repo: github.com/" + u.login
+            repoLink.href = "https://" + h
+            repoLink.innerText = h
+            //repo count and repo names
+            let n = u.public_repos
+            repoCount.innerText = "Public Repositories: " + n
+            document.getElementById("company").innerText = "Company: " + u.company
+            document.getElementById("bio").innerText = "Bio: " +  u.bio
+            document.getElementById("location").innerText = "Location: " + u.location
+            document.getElementById("twitter").innerText = "Twitter: @" + u.twitter_username
+            document.getElementById("twitter").innerText = "Github IO: " + u.blog
+            let b = n > 0 ? await toJSON(URL + u.login + "/repos") : []
+            repoList.innerText = b.map(x => x.name).join(", ")
+            showRateLimit()
+        }
+        
+        async function showRateLimit() {
+            const LIM = "https://api.github.com/rate_limit"
+            let { rate } = await toJSON(LIM)
+            lim.innerText = rate.used + '/' + rate.limit
+        }
+        
+        title.innerText = document.title
+        sample.innerText = toJSON + '\n' + readUser
+
+        readUser()
+    </script>
+
+</body>
+
+</html>
