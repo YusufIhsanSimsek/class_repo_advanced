@@ -5,7 +5,6 @@ var darkBrown = "#3e2723";
 var lightBrown = "#efdcd5";
 var board = document.getElementById("chessBoard");
 var pieceNames = ["bishop", "king", "knight", "pawn", "queen", "rook"];
-var boardState = [];
 var pieces = [];
 var squares = new Map();
 var images = new Map();
@@ -46,43 +45,79 @@ class Bishop extends Piece {
     }
 
     getLegalMoves() {
-        let legalMoves = [];
-
-        console.log(this.getAllMoves());
-    }
-
-    getAllMoves() {
-        let allMoves = new Set();
+        let legalMoves = new Set();
 
         // Going north-east
         let tempLoc = this.location;
         while (!this.isOutsideOfBoard(tempLoc)) {
-            allMoves.add(tempLoc);
+            legalMoves.add(tempLoc);
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+
+            let piece = getPieceByLoc(tempLoc);
+            if (piece != null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
         }
 
         // Going south-east
         tempLoc = this.location;
         while (!this.isOutsideOfBoard(tempLoc)) {
-            allMoves.add(tempLoc);
+            legalMoves.add(tempLoc);
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece != null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
         }
 
         // Going south-west
         tempLoc = this.location;
         while (!this.isOutsideOfBoard(tempLoc)) {
-            allMoves.add(tempLoc);
+            legalMoves.add(tempLoc);
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece != null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
         }
 
         // Going north-west
         tempLoc = this.location;
         while (!this.isOutsideOfBoard(tempLoc)) {
-            allMoves.add(tempLoc);
+            legalMoves.add(tempLoc);
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece != null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
         }
 
-        return allMoves;
+        legalMoves.delete(this.location);
+        return legalMoves;
     }
 }
 
@@ -296,7 +331,7 @@ function delay(time) {
 }
 
 function getPieceByLoc(loc) {
-    let tempPiece;
+    let tempPiece = null;
     pieces.forEach((piece) => {
         if (piece.location === loc) {
             tempPiece = piece;
@@ -304,6 +339,18 @@ function getPieceByLoc(loc) {
         }
     });
     return tempPiece;
+}
+
+function highlightLegalMoves(legalMoves) {
+    legalMoves.forEach((loc) => {
+        squares.get(loc).classList.add("highlight");
+    });
+}
+
+function removeHighlights() {
+    squares.forEach((square) => {
+        square.classList.remove("highlight");
+    });
 }
 
 /****************************************************************************************
@@ -319,7 +366,7 @@ window.addEventListener("load", async () => {
     placePieces();
 });
 
-window.addEventListener("resize", ()=>{
+window.addEventListener("resize", () => {
     scrollToTable();
 });
 
@@ -334,14 +381,18 @@ window.addEventListener("click", (event) => {
         return;
     }
 
+    removeHighlights();
+
     if (selectedLocation === null) {
+        if (getPieceByLoc(event.target.id) === null) {
+            return;
+        }
         selectedLocation = event.target.id;
     } else {
         move(selectedLocation, event.target.id);
         selectedLocation = null;
     }
 
-    console.log(getPieceByLoc(event.target.id).getLegalMoves());
+    let legalMoves = getPieceByLoc(event.target.id).getLegalMoves();
+    highlightLegalMoves(legalMoves);
 });
-
-
