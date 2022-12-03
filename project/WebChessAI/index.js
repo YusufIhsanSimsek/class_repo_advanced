@@ -22,8 +22,12 @@ class Piece {
     }
 
     isOutsideOfBoard(loc) {
-        if (loc.length != 2) {
+        if (loc.length !== 2) {
             return true;
+        }
+
+        if (loc === "LC" || loc === "RC") {
+            return false;
         }
 
         let row = loc[0];
@@ -54,7 +58,7 @@ class Bishop extends Piece {
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
 
             let piece = getPieceByLoc(tempLoc);
-            if (piece != null) {
+            if (piece !== null) {
                 if (piece.name.startsWith("w")) {
                     break;
                 } else {
@@ -71,7 +75,7 @@ class Bishop extends Piece {
             legalMoves.add(tempLoc);
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
-            if (piece != null) {
+            if (piece !== null) {
                 if (piece.name.startsWith("w")) {
                     break;
                 } else {
@@ -88,7 +92,7 @@ class Bishop extends Piece {
             legalMoves.add(tempLoc);
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
-            if (piece != null) {
+            if (piece !== null) {
                 if (piece.name.startsWith("w")) {
                     break;
                 } else {
@@ -105,7 +109,7 @@ class Bishop extends Piece {
             legalMoves.add(tempLoc);
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
             let piece = getPieceByLoc(tempLoc);
-            if (piece != null) {
+            if (piece !== null) {
                 if (piece.name.startsWith("w")) {
                     break;
                 } else {
@@ -124,9 +128,127 @@ class Bishop extends Piece {
 class King extends Piece {
     constructor(name, location, image) {
         super(name, location, image);
+        this.hasMoved = false;
     }
 
-    getLegalMoves() {}
+    getLegalMoves() {
+        let legalMoves = new Set();
+
+        // Add 8 possible move
+        legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Right
+        legalMoves.add(getNextChar(this.location[0]) + "" + this.location[1]); // Right
+        legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Right
+        legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + 1)); // Bottom
+        legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Left
+        legalMoves.add(getPrevChar(this.location[0]) + "" + this.location[1]); // Left
+        legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Left
+        legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 1)); // Top
+
+        // Castle possibilities
+        legalMoves.add("LC"); // Left Castle
+        legalMoves.add("RC"); // Right Castle
+
+        // Remove impossible moves
+        for (const loc of legalMoves) {
+            if (this.isOutsideOfBoard(loc)) {
+                legalMoves.delete(loc);
+                continue;
+            }
+
+            if (loc == "LC") {
+                if (this.hasMoved) {
+                    // If king has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                let piece = getPieceByLoc("a8");
+
+                if (!(piece instanceof Rook)) {
+                    // If left rook has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (piece.hasMoved) {
+                    // If left rook has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (getPieceByLoc("b8") !== null || getPieceByLoc("c8") !== null || getPieceByLoc("d8") !== null) {
+                    // If there are pieces between king and rook is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (isUnderAttack("b8") || isUnderAttack("c8") || isUnderAttack("d8")) {
+                    // If the squares between king and rook is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (isUnderAttack(this.location)) {
+                    // If the king is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+            } else if (loc == "RC") {
+                if (this.hasMoved) {
+                    // If king has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                let piece = getPieceByLoc("h8");
+
+                if (!(piece instanceof Rook)) {
+                    // If left rook has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (piece.hasMoved) {
+                    // If left rook has moved castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (getPieceByLoc("f8") !== null || getPieceByLoc("g8") !== null) {
+                    // If there are pieces between king and rook is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (isUnderAttack("f8") || isUnderAttack("g8")) {
+                    // If the squares between king and rook is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (isUnderAttack(this.location)) {
+                    // If the king is under attack castle is impossible
+                    legalMoves.delete(loc);
+                    continue;
+                }
+            } else {
+                let piece = getPieceByLoc(loc);
+                if (piece !== null && piece.name.startsWith("w")) {
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                if (isUnderAttack(loc)) {
+                    legalMoves.delete(loc);
+                    continue;
+                }
+            }
+        }
+
+        console.log(legalMoves);
+
+        return legalMoves;
+    }
 }
 
 class Knight extends Piece {
@@ -134,15 +256,154 @@ class Knight extends Piece {
         super(name, location, image);
     }
 
-    getLegalMoves() {}
+    getLegalMoves() {
+        let legalMoves = new Set();
+
+        // Add 8 possible move
+        legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 2)); // Top - Right 1
+        legalMoves.add(getNextChar(getNextChar(this.location[0])) + "" + (parseInt(this.location[1]) - 1)); // Top - Right 2
+        legalMoves.add(getNextChar(getNextChar(this.location[0])) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Right 1
+        legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + 2)); // Bottom - Right 2
+        legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + 2)); // Bottom - Left 1
+        legalMoves.add(getPrevChar(getPrevChar(this.location[0])) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Left 2
+        legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 2)); // Top - Left 1
+        legalMoves.add(getPrevChar(getPrevChar(this.location[0])) + "" + parseInt(this.location[1] - 1)); // Top - Left 2
+
+        // Remove illegal moves
+        for (const loc of legalMoves) {
+            let piece = getPieceByLoc(loc);
+            if (piece !== null && piece.name.startsWith("w")) {
+                legalMoves.delete(loc);
+                continue;
+            }
+            if (this.isOutsideOfBoard(loc)) {
+                legalMoves.delete(loc);
+                continue;
+            }
+        }
+
+        return legalMoves;
+    }
 }
 
 class Pawn extends Piece {
     constructor(name, location, image) {
         super(name, location, image);
+        this.hasMoved = false;
     }
 
-    getLegalMoves() {}
+    getLegalMoves() {
+        let legalMoves = new Set();
+
+        let piece;
+
+        // Add 4 possible move if it is legal
+        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) - 2));
+        if (!this.hasMoved && piece === null) {
+            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 2)); // Top 2
+        }
+
+        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) - 1));
+        if (piece === null) {
+            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 1)); // Top
+        }
+
+        piece = getPieceByLoc(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1));
+        if (piece !== null && piece.name.startsWith("b")) {
+            legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Right
+        }
+
+        piece = getPieceByLoc(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1));
+        if (piece !== null && piece.name.startsWith("b")) {
+            legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Left
+        }
+
+        return legalMoves;
+    }
+}
+
+class Rook extends Piece {
+    constructor(name, location, image) {
+        super(name, location, image);
+        this.hasMoved = false;
+    }
+
+    getLegalMoves() {
+        let legalMoves = new Set();
+
+        // Going Up
+        let tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) - 1);
+
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Right
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Down
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Left
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        legalMoves.delete(this.location);
+
+        return legalMoves;
+    }
 }
 
 class Queen extends Piece {
@@ -150,15 +411,151 @@ class Queen extends Piece {
         super(name, location, image);
     }
 
-    getLegalMoves() {}
-}
+    getLegalMoves() {
+        let legalMoves = new Set();
 
-class Rook extends Piece {
-    constructor(name, location, image) {
-        super(name, location, image);
+        // Going Up
+        let tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) - 1);
+
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Right
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Down
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Left
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Top-Left
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Bottom-Right
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Bottom-Left
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        // Going Top-Left
+        tempLoc = this.location;
+        while (!this.isOutsideOfBoard(tempLoc)) {
+            legalMoves.add(tempLoc);
+            tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+            let piece = getPieceByLoc(tempLoc);
+            if (piece !== null) {
+                if (piece.name.startsWith("w")) {
+                    break;
+                } else {
+                    // There is a black piece on the target location
+                    legalMoves.add(tempLoc);
+                    break;
+                }
+            }
+        }
+
+        legalMoves.delete(this.location);
+
+        return legalMoves;
     }
-
-    getLegalMoves() {}
 }
 
 /*****************************************************************************************
@@ -299,6 +696,7 @@ function getPrevChar(char) {
 }
 
 function move(loc1, loc2) {
+    // ADD CASTLE OPTION
     getPieceByLoc(loc1).location = loc2;
     squares.get(loc2).src = squares.get(loc1).src;
     squares.get(loc1).src = transparentSVG.src;
@@ -343,7 +741,15 @@ function getPieceByLoc(loc) {
 
 function highlightLegalMoves(legalMoves) {
     legalMoves.forEach((loc) => {
-        squares.get(loc).classList.add("highlight");
+        if (loc === "LC") {
+            // Left Castle
+            squares.get("c8").classList.add("highlight");
+        } else if (loc === "RC") {
+            // Right Castle
+            squares.get("g8").classList.add("highlight");
+        } else {
+            squares.get(loc).classList.add("highlight");
+        }
     });
 }
 
@@ -351,6 +757,16 @@ function removeHighlights() {
     squares.forEach((square) => {
         square.classList.remove("highlight");
     });
+}
+
+// BUNU YAZZZZZZZZZZZZZZZZZZZZZZZZZZ
+function isUnderAttack(loc, color) {
+    if (color === "w") {
+        // check the white pieces for attack
+    } else {
+        // check the black pieces for attack
+    }
+    return false;
 }
 
 /****************************************************************************************
@@ -371,7 +787,7 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("click", (event) => {
-    if (document.getElementById(event.target.id).parentElement.className != "rows") {
+    if (document.getElementById(event.target.id).parentElement.className !== "rows") {
         // if the user clicked outside of the table
         return;
     }
@@ -383,16 +799,26 @@ window.addEventListener("click", (event) => {
 
     removeHighlights();
 
-    if (selectedLocation === null) {
-        if (getPieceByLoc(event.target.id) === null) {
+    if (getPieceByLoc(event.target.id) === null) {
+        // There is no piece in the clicked square
+        if (selectedLocation === null) {
+            return;
+        } else {
+            move(selectedLocation, event.target.id);
+            selectedLocation = null;
             return;
         }
-        selectedLocation = event.target.id;
     } else {
-        move(selectedLocation, event.target.id);
-        selectedLocation = null;
+        // There is a piece in the clicked square
+        if (getPieceByLoc(event.target.id).name.startsWith("w")) {
+            let legalMoves = getPieceByLoc(event.target.id).getLegalMoves();
+            if (legalMoves !== undefined) {
+                highlightLegalMoves(legalMoves);
+            }
+            selectedLocation = event.target.id;
+            return;
+        } else {
+            // black piece clicked. if its in the legal moves then move the piece
+        }
     }
-
-    let legalMoves = getPieceByLoc(event.target.id).getLegalMoves();
-    highlightLegalMoves(legalMoves);
 });
