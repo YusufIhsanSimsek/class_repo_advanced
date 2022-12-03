@@ -2,10 +2,10 @@
     background-color: #a69b97;
     margin: 0 auto;
     height: 205vh;
-    overflow: hidden;
+    ovserflow: hidden;
 }
 
-#chessBoard {
+.chessBoard {
     margin: 0 auto;
     margin-top: 45vh;
     border-spacing: 0px;
@@ -34,7 +34,7 @@
     height: 10vh;
 }
 
-#attribution {
+.attribution {
     display: flex;
     justify-content: center;
     margin-top: 16px;
@@ -69,11 +69,6 @@
     transition: opacity 1500ms ease-out, transform 1000ms ease-out;
 }
 
-.startAnim {
-    opacity: 1;
-    transform: translateY(5vh);
-}
-
 .button {
     display: flex;
     margin: 0 auto;
@@ -92,15 +87,109 @@
     transition: box-shadow 500ms ease, opacity 1000ms ease-out, transform 1500ms ease-out;
 }
 
-.startAnimButton {
-    opacity: 1;
-    cursor: pointer;
-}
-
 .button:hover {
     box-shadow: 2px 2px 20px 2px #6a4f4b;
 }
 
 .highlight {
     filter: invert(20%) hue-rotate(90deg) saturate(300%) brightness(0.8);
+}
+
+/* FOR MOBILE */
+
+.chessBoard_mobile {
+    margin: 0 auto;
+    margin-top: 80vh;
+    border-spacing: 0px;
+    border-collapse: collapse;
+    text-indent: 0;
+    border: none;
+    box-shadow: 5px 5px 50px 5px black;
+}
+
+.squares_mobile {
+    margin: 0;
+    padding: 1vh;
+    width: 7vw;
+    height: 7vw;
+    object-fit: contain;
+    transition: filter 200ms ease-out;
+}
+
+.squares_mobile:hover {
+    filter: brightness(0.6);
+}
+
+.rows_mobile {
+    margin: 0;
+    padding: 0;
+    height: 10.8vw;
+}
+
+.attribution_mobile {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    margin-bottom: 5vh;
+    font-family: monospace;
+    text-decoration: none;
+    font-size: 10px;
+    color: #3e2723;
+    margin-top: 4vh;
+}
+
+.firstText_mobile {
+    margin: 0 auto;
+    font-family: monospace;
+    color: #3e2723;
+    text-align: center;
+    margin-top: 35vw;
+    font-size: 18vw;
+    font-weight: 900;
+    opacity: 0;
+    transition: opacity 1500ms ease-out, transform 1000ms ease-out;
+}
+
+.secondText_mobile {
+    margin: 0 auto;
+    font-family: monospace;
+    color: #3e2723;
+    text-align: center;
+    font-size: 6vw;
+    font-weight: 100;
+    opacity: 0;
+    transition: opacity 1500ms ease-out, transform 1000ms ease-out;
+}
+
+.button_mobile {
+    display: flex;
+    margin: 0 auto;
+    margin-top: 10vh;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 100px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 20px;
+    border: 3px solid #3e2723;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 900;
+    color: #3e2723;
+    opacity: 0;
+    transition: box-shadow 500ms ease, opacity 1000ms ease-out, transform 1500ms ease-out;
+}
+
+.highlight {
+    filter: invert(20%) hue-rotate(90deg) saturate(300%) brightness(0.8);
+}
+
+.startAnimButton {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.startAnim {
+    opacity: 1;
+    transform: translateY(5vh);
 }

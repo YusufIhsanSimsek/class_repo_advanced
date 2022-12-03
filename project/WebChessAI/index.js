@@ -769,6 +769,23 @@ function isUnderAttack(loc, color) {
     return false;
 }
 
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function adjustForMobile() {
+    board.className = "chessBoard_mobile";
+    document.getElementById("first").className = "firstText_mobile";
+    document.getElementById("second").className = "secondText_mobile";
+    document.getElementById("startButton").className = "button_mobile"
+    document.querySelectorAll(".squares").forEach((element) => {
+        element.className = "squares_mobile";
+    });
+    document.querySelectorAll(".rows").forEach((element) => {
+        element.className = "rows_mobile";
+    });
+}
+
 /****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Starts   |   |   |   |   |   |   |   |   |   |
 ****************************************************************************************/
@@ -780,6 +797,10 @@ window.addEventListener("load", async () => {
     await setImages();
     setPieces();
     placePieces();
+
+    if (isMobile()) {
+        adjustForMobile();
+    }
 });
 
 window.addEventListener("resize", () => {
@@ -787,8 +808,10 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("click", (event) => {
-    if (document.getElementById(event.target.id).parentElement.className !== "rows") {
+    let parentClassName = document.getElementById(event.target.id).parentElement.className;
+    if (parentClassName !== "rows" && parentClassName !== "rows_mobile") {
         // if the user clicked outside of the table
+        console.log("ad");
         return;
     }
 
