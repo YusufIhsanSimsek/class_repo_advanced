@@ -1,8 +1,12 @@
 #body {
-    background-color: #a69b97;
     margin: 0 auto;
     height: 205vh;
-    ovserflow: hidden;
+    /* overflow: hidden; */
+    background: radial-gradient(
+		farthest-corner,
+		#a69b97,
+		#8d6e63
+	);
 }
 
 .chessBoard {

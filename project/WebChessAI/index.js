@@ -1,7 +1,7 @@
 /***************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Variables   |   |   |   |   |   |   |   |   |
 ***************************************************************************************/
-var darkBrown = "#3e2723";
+var darkBrown = "#795548";
 var lightBrown = "#efdcd5";
 var board = document.getElementById("chessBoard");
 var pieceNames = ["bishop", "king", "knight", "pawn", "queen", "rook"];
@@ -561,18 +561,24 @@ class Queen extends Piece {
 /*****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Methods   |   |   |   |   |   |   |   |   |   |
 *****************************************************************************************/
-async function addChessSquares() {
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function addChessSquares() {
     let rowNumber = 1;
     let columnNumber = "a";
 
+    let is_mobile = isMobile();
+
     for (let x = 0; x < 8; x++, rowNumber++) {
         let row = document.createElement("div");
-        row.className = "rows";
+        row.className = is_mobile ? "rows_mobile" : "rows";
         board.appendChild(row);
 
         for (let y = 0; y < 8; y++, columnNumber = getNextChar(columnNumber)) {
             let square = document.createElement("img");
-            square.className = "squares";
+            square.className = is_mobile ? "squares_mobile" : "squares";
             square.id = columnNumber + "" + rowNumber;
             square.style.backgroundColor = (x + y) % 2 == 0 ? lightBrown : darkBrown;
             row.appendChild(square);
@@ -769,21 +775,11 @@ function isUnderAttack(loc, color) {
     return false;
 }
 
-function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
 function adjustForMobile() {
     board.className = "chessBoard_mobile";
     document.getElementById("first").className = "firstText_mobile";
     document.getElementById("second").className = "secondText_mobile";
-    document.getElementById("startButton").className = "button_mobile"
-    document.querySelectorAll(".squares").forEach((element) => {
-        element.className = "squares_mobile";
-    });
-    document.querySelectorAll(".rows").forEach((element) => {
-        element.className = "rows_mobile";
-    });
+    document.getElementById("startButton").className = "button_mobile";
 }
 
 /****************************************************************************************
@@ -791,16 +787,15 @@ function adjustForMobile() {
 ****************************************************************************************/
 
 window.addEventListener("load", async () => {
-    startingAnimation();
-
-    await addChessSquares();
-    await setImages();
-    setPieces();
-    placePieces();
-
     if (isMobile()) {
         adjustForMobile();
     }
+    startingAnimation();
+
+    addChessSquares();
+    await setImages();
+    setPieces();
+    placePieces();
 });
 
 window.addEventListener("resize", () => {
@@ -811,7 +806,6 @@ window.addEventListener("click", (event) => {
     let parentClassName = document.getElementById(event.target.id).parentElement.className;
     if (parentClassName !== "rows" && parentClassName !== "rows_mobile") {
         // if the user clicked outside of the table
-        console.log("ad");
         return;
     }
 
