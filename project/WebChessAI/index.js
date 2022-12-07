@@ -59,10 +59,11 @@ class Bishop extends Piece {
 
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -76,10 +77,11 @@ class Bishop extends Piece {
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece.name.startsWith(this.name[0])) {
+                    // There is a firendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -93,10 +95,11 @@ class Bishop extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece.name.startsWith(this.name[0])) {
+                    // There is a firendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -110,10 +113,11 @@ class Bishop extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece.name.startsWith(this.name[0])) {
+                    // There is a firendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -162,7 +166,9 @@ class King extends Piece {
                     continue;
                 }
 
-                let piece = getPieceByLoc("a8");
+                let place = this.name.startsWith("w") ? 8 : 1;
+
+                let piece = getPieceByLoc("a" + place);
 
                 if (!(piece instanceof Rook)) {
                     // If left rook has moved castle is impossible
@@ -176,20 +182,20 @@ class King extends Piece {
                     continue;
                 }
 
-                if (getPieceByLoc("b8") !== null || getPieceByLoc("c8") !== null || getPieceByLoc("d8") !== null) {
-                    // If there are pieces between king and rook is under attack castle is impossible
+                if (getPieceByLoc("b" + place) !== null || getPieceByLoc("c" + place) !== null || getPieceByLoc("d" + place) !== null) {
+                    // If there are pieces between king and rook is under attack, castle is impossible
                     legalMoves.delete(loc);
                     continue;
                 }
 
-                if (isUnderAttack("b8") || isUnderAttack("c8") || isUnderAttack("d8")) {
-                    // If the squares between king and rook is under attack castle is impossible
+                if (isUnderAttack("b" + place) || isUnderAttack("c" + place) || isUnderAttack("d" + place)) {
+                    // If the squares between king and rook is under attack, castle is impossible
                     legalMoves.delete(loc);
                     continue;
                 }
 
                 if (isUnderAttack(this.location)) {
-                    // If the king is under attack castle is impossible
+                    // If the king is under attack, castle is impossible
                     legalMoves.delete(loc);
                     continue;
                 }
@@ -200,7 +206,8 @@ class King extends Piece {
                     continue;
                 }
 
-                let piece = getPieceByLoc("h8");
+                let place = this.name.startsWith("w") ? 8 : 1;
+                let piece = getPieceByLoc("h" + place);
 
                 if (!(piece instanceof Rook)) {
                     // If left rook has moved castle is impossible
@@ -214,13 +221,13 @@ class King extends Piece {
                     continue;
                 }
 
-                if (getPieceByLoc("f8") !== null || getPieceByLoc("g8") !== null) {
+                if (getPieceByLoc("f" + place) !== null || getPieceByLoc("g" + place) !== null) {
                     // If there are pieces between king and rook is under attack castle is impossible
                     legalMoves.delete(loc);
                     continue;
                 }
 
-                if (isUnderAttack("f8") || isUnderAttack("g8")) {
+                if (isUnderAttack("f" + place) || isUnderAttack("g" + place)) {
                     // If the squares between king and rook is under attack castle is impossible
                     legalMoves.delete(loc);
                     continue;
@@ -233,7 +240,17 @@ class King extends Piece {
                 }
             } else {
                 let piece = getPieceByLoc(loc);
-                if (piece !== null && piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
+                    legalMoves.delete(loc);
+                    continue;
+                }
+
+                // Get enemy king
+                let king = getKing(this.name.startsWith("w") ? "b" : "w");
+
+                // Check if enemy king is near our king in this move
+                if (isNear(king.location, loc)) {
                     legalMoves.delete(loc);
                     continue;
                 }
@@ -244,8 +261,6 @@ class King extends Piece {
                 }
             }
         }
-
-        console.log(legalMoves);
 
         return legalMoves;
     }
@@ -272,10 +287,12 @@ class Knight extends Piece {
         // Remove illegal moves
         for (const loc of legalMoves) {
             let piece = getPieceByLoc(loc);
-            if (piece !== null && piece.name.startsWith("w")) {
+            if (piece !== null && piece.name.startsWith(this.name[0])) {
+                // There is a friendly piece on the target location
                 legalMoves.delete(loc);
                 continue;
             }
+
             if (this.isOutsideOfBoard(loc)) {
                 legalMoves.delete(loc);
                 continue;
@@ -296,26 +313,27 @@ class Pawn extends Piece {
         let legalMoves = new Set();
 
         let piece;
+        let direction = this.name.startsWith("w") ? -1 : 1;
 
         // Add 4 possible move if it is legal
-        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) - 2));
+        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) + direction * 2));
         if (!this.hasMoved && piece === null) {
-            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 2)); // Top 2
+            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + direction * 2)); // Top 2
         }
 
-        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) - 1));
+        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1));
         if (piece === null) {
-            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 1)); // Top
+            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1)); // Top
         }
 
-        piece = getPieceByLoc(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1));
-        if (piece !== null && piece.name.startsWith("b")) {
-            legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Right
+        piece = getPieceByLoc(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1));
+        if (piece !== null && !piece.name.startsWith(this.name[0])) {
+            legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1)); // Top - Right
         }
 
-        piece = getPieceByLoc(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1));
-        if (piece !== null && piece.name.startsWith("b")) {
-            legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Left
+        piece = getPieceByLoc(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1));
+        if (piece !== null && !piece.name.startsWith(this.name[0])) {
+            legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1)); // Top - Left
         }
 
         return legalMoves;
@@ -339,10 +357,11 @@ class Rook extends Piece {
 
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -356,10 +375,11 @@ class Rook extends Piece {
             tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -373,10 +393,11 @@ class Rook extends Piece {
             tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -390,10 +411,11 @@ class Rook extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -422,10 +444,11 @@ class Queen extends Piece {
 
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -439,10 +462,11 @@ class Queen extends Piece {
             tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -456,10 +480,11 @@ class Queen extends Piece {
             tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -473,10 +498,11 @@ class Queen extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -491,10 +517,11 @@ class Queen extends Piece {
 
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -508,10 +535,11 @@ class Queen extends Piece {
             tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -525,10 +553,11 @@ class Queen extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -542,10 +571,11 @@ class Queen extends Piece {
             tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
             let piece = getPieceByLoc(tempLoc);
             if (piece !== null) {
-                if (piece.name.startsWith("w")) {
+                if (piece !== null && piece.name.startsWith(this.name[0])) {
+                    // There is a friendly piece on the target location
                     break;
                 } else {
-                    // There is a black piece on the target location
+                    // There is an enemy piece on the target location
                     legalMoves.add(tempLoc);
                     break;
                 }
@@ -708,6 +738,39 @@ function move(loc1, loc2) {
     squares.get(loc1).src = transparentSVG.src;
 }
 
+function isNear(loc1, loc2) {
+    // Add 8 possible move
+    let loc1Letter = loc1[0].charCodeAt(0);
+    let loc2Letter = loc2[0].charCodeAt(0);
+    let loc1Number = loc1[1];
+    let loc2Number = loc2[1];
+
+    if ((Math.abs(loc1Letter - loc2Letter) == 0 || Math.abs(loc1Letter - loc2Letter) == 1) && (Math.abs(loc1Number - loc2Number) == 0 || Math.abs(loc1Number - loc2Number) == 1)) {
+        return true;
+    }
+
+    return false;
+}
+
+function getKing(type) {
+    let returnPiece;
+    if (type === "w") {
+        pieces.forEach((piece) => {
+            if (piece instanceof King && piece.name.startsWith("w")) {
+                returnPiece = piece;
+            }
+        });
+    } else { // type === "b"
+        pieces.forEach((piece) => {
+            if (piece instanceof King && piece.name.startsWith("b")) {
+                returnPiece = piece;
+            }
+        });
+    }
+
+    return returnPiece;
+}
+
 function startingAnimation() {
     delay(500).then(() => {
         document.getElementById("first").classList.add("startAnim");
@@ -766,8 +829,8 @@ function removeHighlights() {
 }
 
 // BUNU YAZZZZZZZZZZZZZZZZZZZZZZZZZZ
-function isUnderAttack(loc, color) {
-    if (color === "w") {
+function isUnderAttack(loc, type) {
+    if (type === "w") {
         // check the white pieces for attack
     } else {
         // check the black pieces for attack
@@ -827,7 +890,7 @@ window.addEventListener("click", (event) => {
         }
     } else {
         // There is a piece in the clicked square
-        if (getPieceByLoc(event.target.id).name.startsWith("w")) {
+        if (getPieceByLoc(event.target.id).name.startsWith("w") || getPieceByLoc(event.target.id).name.startsWith("b")) {
             let legalMoves = getPieceByLoc(event.target.id).getLegalMoves();
             if (legalMoves !== undefined) {
                 highlightLegalMoves(legalMoves);
