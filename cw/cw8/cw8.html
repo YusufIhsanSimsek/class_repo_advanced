@@ -73,27 +73,12 @@
 <body>
     <div>
         Lat/Lon <input id="mahal" type="text" value="41 29">
-        <button onclick="askWeather()">Get Weather</button>
     </div>
 
     <div id=main>
         <canvas id="canvas"></canvas>
     </div>
     <div id=map></div>
-
-    <div class=dar>
-        <b>Detail</b>
-        <pre id=detay>detail</pre>
-    </div>
-    <div class=dar>
-        <b>Sun</b>
-        <pre id=gunes>sunrise</pre>
-    </div>
-    <hr />
-    <div id=kod>
-        <b>Sample code</b>
-        <pre id=sample></pre>
-    </div>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
     <!-- Make sure you put JS AFTER CSS -->
@@ -142,8 +127,6 @@
             let u = "https://api.openweathermap.org/data/2.5/weather?"
                 + "lat=" + lat + "&lon=" + lon + "&APPID=" + accessKey;
             //hava.innerText = "getting weather"
-            detay.innerText = ''
-            gunes.innerText = ''
             let data = await toJSON(u)
             //  fetch(u).then(r => r.json()).then(showWeather)
             // }
@@ -166,15 +149,7 @@
             let pres = (0.750062 * data.main.pressure).toFixed(0)
             const WIND = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N']
             let d = (data.wind.deg / 45).toFixed(0)
-            detay.innerText = hh  //+'\n'+yy +'\n['+mahal.value+"]"
-                + '\nWind  ' + wind + ' km/h ' + WIND[d]
-                + '\nPressure  ' + pres + ' mm'
-                + '\nHumidity  %' + data.main.humidity
             let { sunrise, sunset } = sys, noon = (sunrise + sunset) / 2
-            gunes.innerText = 'Rise ' + toHM(sunrise + data.timezone)
-                + '\nNoon ' + toHM(noon + data.timezone)
-                + '\nSet  ' + toHM(sunset + data.timezone)
-                + '\nZone ' + (data.timezone / 3600)
             // console.log(hh, yy, 'Wind ' + data.wind.deg + '° ' + WIND[d])
 
             clearCanvas();
@@ -236,7 +211,6 @@
             const context = canvas.getContext("2d");
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
-        sample.innerText = askWeather + "\n\n" + clearCanvas + "\n\n" + drawText + "\n\n" + drawIcon
 
         // ##################### MAP #####################
 
@@ -283,8 +257,7 @@
             if (z <= MIN) incr = 1
             if (z >= MAX) incr = -1
         }
-        // title.innerText = document.title
-        sample.innerText = init; init()
+        init()
     </script>
 
 </body>
