@@ -17,6 +17,8 @@
     text-indent: 0;
     border: none;
     box-shadow: 5px 5px 50px 5px black;
+
+    transition: transform 250ms;
 }
 
 .squares {
@@ -196,4 +198,8 @@
 .startAnim {
     opacity: 1;
     transform: translateY(5vh);
+}
+
+.rotate {
+    transform: rotate(180deg);
 }
