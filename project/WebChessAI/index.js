@@ -9,11 +9,15 @@ var pieces = [];
 var squares = new Map();
 var images = new Map();
 var transparentSVG;
-var selectedLocation = null;
+var selectedPieceLoc = null;
+var currentLegalMoves = null;
+var WHITE_KING = null;
+var BLACK_KING = null;
 var ROOM_ID = -1;
 var GAME_TYPE = "OFFLINE";
 var GAME_STARTED = false;
 var PIECE_TYPE = "WHITE";
+var TURN = "w";
 
 /*****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Classes   |   |   |   |   |   |   |   |   |   |
@@ -191,14 +195,14 @@ class King extends Piece {
 					legalMoves.delete(loc);
 					continue;
 				}
-
-				if (isUnderAttack("b" + place) || isUnderAttack("c" + place) || isUnderAttack("d" + place)) {
+				let enemyType = TURN === "w" ? "b" : "w";
+				if (isUnderAttackBy("b" + place, enemyType) || isUnderAttackBy("c" + place, enemyType) || isUnderAttackBy("d" + place, enemyType)) {
 					// If the squares between king and rook is under attack, castle is impossible
 					legalMoves.delete(loc);
 					continue;
 				}
 
-				if (isUnderAttack(this.location)) {
+				if (isUnderAttackBy(this.location, enemyType)) {
 					// If the king is under attack, castle is impossible
 					legalMoves.delete(loc);
 					continue;
@@ -231,13 +235,14 @@ class King extends Piece {
 					continue;
 				}
 
-				if (isUnderAttack("f" + place) || isUnderAttack("g" + place)) {
+				let enemyType = TURN === "w" ? "b" : "w";
+				if (isUnderAttackBy("f" + place, enemyType) || isUnderAttackBy("g" + place, enemyType)) {
 					// If the squares between king and rook is under attack castle is impossible
 					legalMoves.delete(loc);
 					continue;
 				}
 
-				if (isUnderAttack(this.location)) {
+				if (isUnderAttackBy(this.location, enemyType)) {
 					// If the king is under attack castle is impossible
 					legalMoves.delete(loc);
 					continue;
@@ -251,18 +256,65 @@ class King extends Piece {
 				}
 
 				// Get enemy king
-				let king = getKing(this.name.startsWith("w") ? "b" : "w");
+				let enemyKing = this.name.startsWith("w") ? BLACK_KING : WHITE_KING;
 
 				// Check if enemy king is near our king in this move
-				if (isNear(king.location, loc)) {
+				if (isNear(enemyKing.location, loc)) {
 					legalMoves.delete(loc);
 					continue;
 				}
 
-				if (isUnderAttack(loc)) {
+				let enemyType = TURN === "w" ? "b" : "w";
+				if (isUnderAttackBy(loc, enemyType)) {
 					legalMoves.delete(loc);
 					continue;
 				}
+			}
+		}
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
+		let legalMoves = new Set();
+
+		// Add 8 possible move
+		legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Right
+		legalMoves.add(getNextChar(this.location[0]) + "" + this.location[1]); // Right
+		legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Right
+		legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + 1)); // Bottom
+		legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Left
+		legalMoves.add(getPrevChar(this.location[0]) + "" + this.location[1]); // Left
+		legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 1)); // Top - Left
+		legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) - 1)); // Top
+
+		// Remove impossible moves
+		for (const loc of legalMoves) {
+			if (this.isOutsideOfBoard(loc)) {
+				legalMoves.delete(loc);
+				continue;
+			}
+
+			let piece = getPieceByLoc(loc);
+			if (piece !== null && piece.name.startsWith(this.name[0])) {
+				// There is a friendly piece on the target location
+				legalMoves.delete(loc);
+				continue;
+			}
+
+			// Get enemy king
+			let enemyKing = this.name.startsWith("w") ? BLACK_KING : WHITE_KING;
+
+			// Check if enemy king is near our king in this move
+			if (isNear(enemyKing.location, loc)) {
+				legalMoves.delete(loc);
+				continue;
+			}
+
+			let enemyType = TURN === "w" ? "b" : "w";
+			if (isKingUnderAttack(loc, enemyType)) {
+				legalMoves.delete(loc);
+				continue;
 			}
 		}
 
@@ -686,12 +738,13 @@ async function setImages() {
 async function setPieces() {
 	// White pieces
 	let temp = "a";
+	WHITE_KING = new King("w_king", "e8", images.get("w_king"));
 	pieces.push(new Rook("w_rook", "a8", images.get("w_rook")));
 	pieces.push(new Rook("w_rook", "h8", images.get("w_rook")));
 	pieces.push(new Queen("w_queen", "d8", images.get("w_queen")));
 	pieces.push(new Knight("w_knight", "b8", images.get("w_knight")));
 	pieces.push(new Knight("w_knight", "g8", images.get("w_knight")));
-	pieces.push(new King("w_king", "e8", images.get("w_king")));
+	pieces.push(WHITE_KING);
 	pieces.push(new Bishop("w_bishop", "c8", images.get("w_bishop")));
 	pieces.push(new Bishop("w_bishop", "f8", images.get("w_bishop")));
 	for (let i = 0; i < 8; i++) {
@@ -701,12 +754,13 @@ async function setPieces() {
 
 	// Black pieces
 	temp = "a";
+	BLACK_KING = new King("b_king", "e1", images.get("b_king"));
 	pieces.push(new Rook("b_rook", "a1", images.get("b_rook")));
 	pieces.push(new Rook("b_rook", "h1", images.get("b_rook")));
 	pieces.push(new Queen("b_queen", "d1", images.get("b_queen")));
 	pieces.push(new Knight("b_knight", "b1", images.get("b_knight")));
 	pieces.push(new Knight("b_knight", "g1", images.get("b_knight")));
-	pieces.push(new King("b_king", "e1", images.get("b_king")));
+	pieces.push(BLACK_KING);
 	pieces.push(new Bishop("b_bishop", "c1", images.get("b_bishop")));
 	pieces.push(new Bishop("b_bishop", "f1", images.get("b_bishop")));
 	for (let i = 0; i < 8; i++) {
@@ -754,26 +808,6 @@ function isNear(loc1, loc2) {
 	}
 
 	return false;
-}
-
-function getKing(type) {
-	let returnPiece;
-	if (type === "w") {
-		pieces.forEach((piece) => {
-			if (piece instanceof King && piece.name.startsWith("w")) {
-				returnPiece = piece;
-			}
-		});
-	} else {
-		// type === "b"
-		pieces.forEach((piece) => {
-			if (piece instanceof King && piece.name.startsWith("b")) {
-				returnPiece = piece;
-			}
-		});
-	}
-
-	return returnPiece;
 }
 
 function startingAnimation() {
@@ -848,14 +882,84 @@ function removeHighlights() {
 	});
 }
 
-// BUNU YAZZZZZZZZZZZZZZZZZZZZZZZZZZ
-function isUnderAttack(loc, type) {
+function isUnderAttackBy(loc, type) {
+	// Check all pieces of the opponent. If location is in the legal moves of them, location is under attack.
+	let isPieceUnderAttack = false;
 	if (type === "w") {
-		// check the white pieces for attack
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("w")) {
+				if (piece instanceof King) {
+					let piecesLegalMoves = piece.getLegalAttacks();
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				} else {
+					let piecesLegalMoves = piece.getLegalMoves();
+					console.log(counter++);
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				}
+			}
+		});
 	} else {
-		// check the black pieces for attack
+		// type -> "b"
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("b")) {
+				if (piece instanceof King) {
+					let piecesLegalMoves = piece.getLegalAttacks();
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				} else {
+					let piecesLegalMoves = piece.getLegalMoves();
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				}
+			}
+		});
 	}
-	return false;
+
+	return isPieceUnderAttack;
+}
+
+function isKingUnderAttack(loc, type) {
+	// Check all pieces of the opponent. If location is in the legal moves of them, location is under attack.
+	let isPieceUnderAttack = false;
+	if (type === "w") {
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("w")) {
+				if (!piece instanceof King) {
+					let piecesLegalMoves = piece.getLegalMoves();
+					console.log(counter++);
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				} 
+			}
+		});
+	} else {
+		// type -> "b"
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("b")) {
+				if (!piece instanceof King) {
+					let piecesLegalMoves = piece.getLegalMoves();
+					if (piecesLegalMoves.has(loc)) {
+						isPieceUnderAttack = true;
+						return;
+					}
+				} 
+			}
+		});
+	}
+
+	return isPieceUnderAttack;
 }
 
 function adjustForMobile() {
@@ -957,34 +1061,34 @@ window.addEventListener("resize", () => {
 });
 
 board.addEventListener("click", (event) => {
-	if (selectedLocation === event.target.id) {
-		// if the user clicked in the same place
-		return;
-	}
+	let clickedLoc = event.target.id;
+	let selectedPiece = getPieceByLoc(clickedLoc);
 
 	removeHighlights();
 
-	if (getPieceByLoc(event.target.id) === null) {
-		// There is no piece in the clicked square
-		if (selectedLocation === null) {
-			return;
+	if (GAME_TYPE === "OFFLINE") {
+		if (selectedPieceLoc === null) {
+			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
+				currentLegalMoves = selectedPiece.getLegalMoves();
+				highlightLegalMoves(currentLegalMoves);
+				selectedPieceLoc = clickedLoc;
+			} else {
+				selectedPieceLoc = null;
+			}
 		} else {
-			move(selectedLocation, event.target.id);
-			selectedLocation = null;
-			return;
+			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
+				currentLegalMoves = selectedPiece.getLegalMoves();
+				highlightLegalMoves(currentLegalMoves);
+				selectedPieceLoc = clickedLoc;
+			} else if (currentLegalMoves.has(clickedLoc)) {
+				move(selectedPieceLoc, clickedLoc);
+				selectedPieceLoc = null;
+				TURN = TURN === "w" ? "b" : "w";
+				turnTable();
+			}
 		}
 	} else {
-		// There is a piece in the clicked square
-		if (getPieceByLoc(event.target.id).name.startsWith("w") || getPieceByLoc(event.target.id).name.startsWith("b")) {
-			let legalMoves = getPieceByLoc(event.target.id).getLegalMoves();
-			if (legalMoves !== undefined) {
-				highlightLegalMoves(legalMoves);
-			}
-			selectedLocation = event.target.id;
-			return;
-		} else {
-			// black piece clicked. if its in the legal moves then move the piece
-		}
+		// GAME_TYPE -> ONLINE
 	}
 });
 

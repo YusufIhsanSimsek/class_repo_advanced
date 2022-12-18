@@ -14,7 +14,7 @@
     border: none;
     box-shadow: 5px 5px 50px 5px black;
 
-    transition: transform 250ms;
+    transition: transform 250ms ease;
 }
 
 .squares {
