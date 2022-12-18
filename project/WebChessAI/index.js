@@ -10,6 +10,10 @@ var squares = new Map();
 var images = new Map();
 var transparentSVG;
 var selectedLocation = null;
+var ROOM_ID = -1;
+var GAME_TYPE = "OFFLINE";
+var GAME_STARTED = false;
+var PIECE_TYPE = "WHITE";
 
 /*****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Classes   |   |   |   |   |   |   |   |   |   |
@@ -315,15 +319,15 @@ class Pawn extends Piece {
         let piece;
         let direction = this.name.startsWith("w") ? -1 : 1;
 
+        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1));
+        if (piece === null) {
+            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1)); // Top
+        }
+        
         // Add 4 possible move if it is legal
         piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) + direction * 2));
         if (!this.hasMoved && piece === null) {
             legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + direction * 2)); // Top 2
-        }
-
-        piece = getPieceByLoc(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1));
-        if (piece === null) {
-            legalMoves.add(this.location[0] + "" + (parseInt(this.location[1]) + direction * 1)); // Top
         }
 
         piece = getPieceByLoc(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1));
@@ -760,7 +764,8 @@ function getKing(type) {
                 returnPiece = piece;
             }
         });
-    } else { // type === "b"
+    } else {
+        // type === "b"
         pieces.forEach((piece) => {
             if (piece instanceof King && piece.name.startsWith("b")) {
                 returnPiece = piece;
@@ -785,8 +790,23 @@ function startingAnimation() {
     });
 }
 
-function scrollToTable() {
-    document.getElementById("chessBoard").scrollIntoView({
+function onlineChoiceAnimation() {
+    delay(500).then(() => {
+        document.getElementById("online_button").classList.add("startAnimButton");
+        document.getElementById("offline_button").classList.add("startAnimButton");
+    });
+}
+
+function roomChoiceAnimation() {
+    delay(500).then(() => {
+        document.getElementById("create_room").classList.add("startAnimButton");
+        document.getElementById("enter_room").classList.add("startAnimButton");
+        document.getElementById("input").classList.add("startAnimInput");
+    });
+}
+
+function scrollTo(element) {
+    element.scrollIntoView({
         behavior: "smooth",
         block: "center",
         inline: "center",
@@ -845,6 +865,75 @@ function adjustForMobile() {
     document.getElementById("startButton").className = "button_mobile";
 }
 
+async function gameStartRequest() {
+    let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves`;
+
+    const fetchData = {
+        method: "POST",
+    };
+
+    let varData;
+
+    await fetch(url, fetchData)
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data);
+            varData = data;
+        });
+
+    return varData;
+}
+
+function sendMoveToServer(move, roomid) {
+    const xhr = new XMLHttpRequest();
+    let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves/${id}`;
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    const data = {
+        roomid: 23532,
+        move: "asdasdsadsad",
+        id: 123,
+    };
+
+    xhr.onload = function () {
+        if (this.status === 200) {
+            console.log(this.response);
+        }
+    };
+
+    xhr.send(JSON.stringify(data));
+}
+
+async function getData(roomid) {
+    let url = "https://639b473531877e43d6882dce.mockapi.io/isochess/moves?id=" + roomid;
+
+    const fetchData = {
+        method: "GET",
+    };
+
+    let varData;
+
+    await fetch(url, fetchData)
+        .then((response) => response.json())
+        .then((data) => (varData = data));
+    return varData;
+}
+
+function turnTable() {
+    if (board.classList.contains("rotate")) {
+        board.classList.remove("rotate");
+        squares.forEach((square) => {
+            square.classList.remove("rotate");
+        });
+    } else {
+        board.classList.add("rotate");
+        squares.forEach((square) => {
+            square.classList.add("rotate");
+        });
+    }
+}
+
 /****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Starts   |   |   |   |   |   |   |   |   |   |
 ****************************************************************************************/
@@ -862,16 +951,12 @@ window.addEventListener("load", async () => {
 });
 
 window.addEventListener("resize", () => {
-    scrollToTable();
+    if (GAME_STARTED) {
+        scrollTo(board);
+    }
 });
 
-window.addEventListener("click", (event) => {
-    let parentClassName = document.getElementById(event.target.id).parentElement.className;
-    if (parentClassName !== "rows" && parentClassName !== "rows_mobile") {
-        // if the user clicked outside of the table
-        return;
-    }
-
+board.addEventListener("click", (event) => {
     if (selectedLocation === event.target.id) {
         // if the user clicked in the same place
         return;
@@ -900,5 +985,61 @@ window.addEventListener("click", (event) => {
         } else {
             // black piece clicked. if its in the legal moves then move the piece
         }
+    }
+});
+
+document.getElementById("startButton").addEventListener("click", () => {
+    scrollTo(document.getElementById("online_choice"));
+    onlineChoiceAnimation();
+});
+
+document.getElementById("offline_button").addEventListener("click", () => {
+    GAME_TYPE = "OFFLINE";
+    scrollTo(board);
+});
+
+document.getElementById("online_button").addEventListener("click", () => {
+    GAME_TYPE = "ONLINE";
+    scrollTo(document.getElementById("room_choice"));
+    roomChoiceAnimation();
+});
+
+document.getElementById("input").addEventListener("focusout", () => {
+    delay(100).then(() => {
+        document.getElementById("input").value = "Room Id";
+    });
+});
+
+document.getElementById("input").addEventListener("focusin", () => {
+    delay(100).then(() => {
+        document.getElementById("input").value = "";
+        document.getElementById("input").style.borderBottom = "3px solid #3e2723";
+        document.getElementById("input").style.color = "#3e2723";
+    });
+});
+
+document.getElementById("create_room").addEventListener("click", () => {
+    // let roomData = gameStartRequest();
+    // ROOM_ID = roomData.id;
+    PIECE_TYPE = "BLACK";
+    turnTable();
+    scrollTo(board);
+});
+
+document.getElementById("enter_room").addEventListener("click", async () => {
+    let roomid = document.getElementById("input").value;
+
+    let data = await getData(roomid);
+
+    if (data.length == 0) {
+        document.getElementById("input").style.borderBottom = "3px solid red";
+        document.getElementById("input").style.color = "red";
+        document.getElementById("input").value = "Room not found!";
+    } else {
+        console.log(data[0]);
+        ROOM_ID = data[0].id;
+        PIECE_TYPE = "WHITE";
+        document.getElementById("room_id").innerText = "Room Id: " + ROOM_ID;
+        scrollTo(board);
     }
 });

@@ -1,12 +1,8 @@
 #body {
     margin: 0 auto;
-    height: 205vh;
+    height: 405vh;
     /* overflow: hidden; */
-    background: radial-gradient(
-		farthest-corner,
-		#a69b97,
-		#8d6e63
-	);
+    background: radial-gradient(farthest-corner, #a69b97, #8d6e63);
 }
 
 .chessBoard {
@@ -38,6 +34,55 @@
     margin: 0;
     padding: 0;
     height: 10vh;
+}
+
+.online_choice {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto;
+    margin-top: 50vh;
+
+    transition: transform 1000ms;
+}
+
+.room_choice {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto;
+    margin-top: 50vh;
+    justify-content: space-around;
+
+    transition: transform 1000ms;
+}
+
+.room_div {
+    display: flex;
+    flex-direction: column;
+}
+
+.input {
+    background: rgba(0, 0, 0, 0);
+    border: 3px solid rgba(0, 0, 0, 0);
+    border-bottom: 3px solid #3e2723;
+    height: 50px;
+    width: 200px;
+    outline: none;
+    font-size: 20px;
+    font-family: monospace;
+    color: #3e2723;
+    text-decoration: none;
+    opacity: 0;
+
+    transition: opacity 1000ms;
+}
+
+#room_id {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    font-family: monospace;
+    color: #3e2723;
+    transform: translateY(43vh);
 }
 
 .attribution {
@@ -99,6 +144,10 @@
 
 .highlight {
     filter: invert(20%) hue-rotate(90deg) saturate(300%) brightness(0.8);
+}
+
+.rotate {
+    transform: rotate(180deg);
 }
 
 /* FOR MOBILE */
@@ -193,6 +242,10 @@
 .startAnimButton {
     opacity: 1;
     cursor: pointer;
+}
+
+.startAnimInput {
+    opacity: 1;
 }
 
 .startAnim {

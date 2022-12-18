@@ -6,20 +6,36 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="index.css">
-    <title>Chess AI</title>
+    <title>Web Chess</title>
 </head>
 
 <body id="body">
-    <h1 id="first" class="firstText">Chess AI</h1>
+    <h1 id="first" class="firstText">Web Chess</h1>
     <h1 id="second" class="secondText">By Yusuf İhsan Şimşek</h1>
 
-    <button id="startButton" class="button" onclick="scrollToTable();">START</button>
+    <button id="startButton" class="button">START</button>
 
+    <div id="online_choice" class="online_choice">
+        <button id="online_button" class="button">Online</button>
+        <button id="offline_button" class="button">Offline</button>
+    </div>
+
+    <div id="room_choice" class="room_choice">
+        <div id="create_div" class="room_div">
+            <button id="create_room" class="button">Create Room</button>
+        </div>
+        <div id="enter_div" class="room_div">
+            <button id="enter_room" class="button">Enter a Room</button>
+            <input class="input" id="input" type="text" name="room_id" value="Room Id">
+        </div>
+    </div>
+
+    <h1 id="room_id"></h1>
     <table id="chessBoard" class="chessBoard"></table>
 
-    <script src="index.js"></script>
-
     <a id="attribution" class="attribution" href="https://www.vecteezy.com/free-vector/chess-pieces">Chess Pieces Vectors by Vecteezy</a>
+
+    <script src="index.js"></script>
 </body>
 
 </html>
