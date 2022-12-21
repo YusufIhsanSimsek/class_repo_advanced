@@ -4,6 +4,7 @@
 var darkBrown = "#795548";
 var lightBrown = "#efdcd5";
 var board = document.getElementById("chessBoard");
+var body = document.getElementById("body");
 var pieceNames = ["bishop", "king", "knight", "pawn", "queen", "rook"];
 var pieces = [];
 var squares = new Map();
@@ -27,6 +28,7 @@ class Piece {
 		this.name = name;
 		this.location = location;
 		this.image = image;
+		this.hasMoved = false;
 	}
 
 	isOutsideOfBoard(loc) {
@@ -86,7 +88,7 @@ class Bishop extends Piece {
 			let piece = getPieceByLoc(tempLoc);
 			if (piece !== null) {
 				if (piece.name.startsWith(this.name[0])) {
-					// There is a firendly piece on the target location
+					// There is a friendly piece on the target location
 					break;
 				} else {
 					// There is an enemy piece on the target location
@@ -104,7 +106,7 @@ class Bishop extends Piece {
 			let piece = getPieceByLoc(tempLoc);
 			if (piece !== null) {
 				if (piece.name.startsWith(this.name[0])) {
-					// There is a firendly piece on the target location
+					// There is a friendly piece on the target location
 					break;
 				} else {
 					// There is an enemy piece on the target location
@@ -122,7 +124,7 @@ class Bishop extends Piece {
 			let piece = getPieceByLoc(tempLoc);
 			if (piece !== null) {
 				if (piece.name.startsWith(this.name[0])) {
-					// There is a firendly piece on the target location
+					// There is a friendly piece on the target location
 					break;
 				} else {
 					// There is an enemy piece on the target location
@@ -133,6 +135,108 @@ class Bishop extends Piece {
 		}
 
 		legalMoves.delete(this.location);
+
+		// If moving the piece causes the king to be under attack, delete that move.
+		let actualLocation = this.location;
+		let king = TURN === "w" ? WHITE_KING : BLACK_KING;
+
+		legalMoves.forEach((move) => {
+			let isRemoved = false;
+			let pieceOnTheTargetLoc = getPieceByLoc(move);
+			if (pieceOnTheTargetLoc !== null) {
+				pieces.splice(pieces.indexOf(pieceOnTheTargetLoc), 1);
+				isRemoved = true;
+			}
+			this.location = move;
+
+			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
+				legalMoves.delete(move);
+			}
+		});
+
+		this.location = actualLocation;
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
+		let legalMoves = new Set();
+
+		// Going north-east
+		let tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going south-east
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going south-west
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going north-west
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		legalMoves.delete(this.location);
+
 		return legalMoves;
 	}
 }
@@ -140,7 +244,6 @@ class Bishop extends Piece {
 class King extends Piece {
 	constructor(name, location, image) {
 		super(name, location, image);
-		this.hasMoved = false;
 	}
 
 	getLegalMoves() {
@@ -178,7 +281,7 @@ class King extends Piece {
 
 				let piece = getPieceByLoc("a" + place);
 
-				if (!(piece instanceof Rook)) {
+				if (piece === null || !piece.name.includes("rook")) {
 					// If left rook has moved castle is impossible
 					legalMoves.delete(loc);
 					continue;
@@ -217,7 +320,7 @@ class King extends Piece {
 				let place = this.name.startsWith("w") ? 8 : 1;
 				let piece = getPieceByLoc("h" + place);
 
-				if (!(piece instanceof Rook)) {
+				if (piece === null || !piece.name.includes("rook")) {
 					// If left rook has moved castle is impossible
 					legalMoves.delete(loc);
 					continue;
@@ -355,6 +458,59 @@ class Knight extends Piece {
 			}
 		}
 
+		legalMoves.delete(this.location);
+
+		// If moving the piece causes the king to be under attack, delete that move.
+		let actualLocation = this.location;
+		let king = TURN === "w" ? WHITE_KING : BLACK_KING;
+
+		legalMoves.forEach((move) => {
+			let isRemoved = false;
+			let pieceOnTheTargetLoc = getPieceByLoc(move);
+			if (pieceOnTheTargetLoc !== null) {
+				pieces.splice(pieces.indexOf(pieceOnTheTargetLoc), 1);
+				isRemoved = true;
+			}
+			this.location = move;
+
+			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
+				legalMoves.delete(move);
+			}
+		});
+
+		this.location = actualLocation;
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
+		let legalMoves = new Set();
+
+		// Add 8 possible move
+		legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) - 2)); // Top - Right 1
+		legalMoves.add(getNextChar(getNextChar(this.location[0])) + "" + (parseInt(this.location[1]) - 1)); // Top - Right 2
+		legalMoves.add(getNextChar(getNextChar(this.location[0])) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Right 1
+		legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + 2)); // Bottom - Right 2
+		legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + 2)); // Bottom - Left 1
+		legalMoves.add(getPrevChar(getPrevChar(this.location[0])) + "" + (parseInt(this.location[1]) + 1)); // Bottom - Left 2
+		legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) - 2)); // Top - Left 1
+		legalMoves.add(getPrevChar(getPrevChar(this.location[0])) + "" + parseInt(this.location[1] - 1)); // Top - Left 2
+
+		// Remove illegal moves
+		for (const loc of legalMoves) {
+			let piece = getPieceByLoc(loc);
+			if (piece !== null && piece.name.startsWith(this.name[0])) {
+				// There is a friendly piece on the target location
+				legalMoves.delete(loc);
+				continue;
+			}
+
+			if (this.isOutsideOfBoard(loc)) {
+				legalMoves.delete(loc);
+				continue;
+			}
+		}
+
 		return legalMoves;
 	}
 }
@@ -362,7 +518,6 @@ class Knight extends Piece {
 class Pawn extends Piece {
 	constructor(name, location, image) {
 		super(name, location, image);
-		this.hasMoved = false;
 	}
 
 	getLegalMoves() {
@@ -392,6 +547,47 @@ class Pawn extends Piece {
 			legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1)); // Top - Left
 		}
 
+		legalMoves.delete(this.location);
+
+		// If moving the piece causes the king to be under attack, delete that move.
+		let actualLocation = this.location;
+		let king = TURN === "w" ? WHITE_KING : BLACK_KING;
+
+		legalMoves.forEach((move) => {
+			let isRemoved = false;
+			let pieceOnTheTargetLoc = getPieceByLoc(move);
+			if (pieceOnTheTargetLoc !== null) {
+				pieces.splice(pieces.indexOf(pieceOnTheTargetLoc), 1);
+				isRemoved = true;
+			}
+			this.location = move;
+
+			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
+				legalMoves.delete(move);
+			}
+		});
+
+		this.location = actualLocation;
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
+		let legalMoves = new Set();
+
+		let piece;
+		let direction = this.name.startsWith("w") ? -1 : 1;
+
+		piece = getPieceByLoc(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1));
+		if (piece !== null && !piece.name.startsWith(this.name[0])) {
+			legalMoves.add(getNextChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1)); // Top - Right
+		}
+
+		piece = getPieceByLoc(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1));
+		if (piece !== null && !piece.name.startsWith(this.name[0])) {
+			legalMoves.add(getPrevChar(this.location[0]) + "" + (parseInt(this.location[1]) + direction * 1)); // Top - Left
+		}
+
 		return legalMoves;
 	}
 }
@@ -399,10 +595,110 @@ class Pawn extends Piece {
 class Rook extends Piece {
 	constructor(name, location, image) {
 		super(name, location, image);
-		this.hasMoved = false;
 	}
 
 	getLegalMoves() {
+		let legalMoves = new Set();
+
+		// Going Up
+		let tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) - 1);
+
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Right
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Down
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Left
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		legalMoves.delete(this.location);
+
+		// If moving the piece causes the king to be under attack, delete that move.
+		let actualLocation = this.location;
+		let king = TURN === "w" ? WHITE_KING : BLACK_KING;
+
+		legalMoves.forEach((move) => {
+			let isRemoved = false;
+			let pieceOnTheTargetLoc = getPieceByLoc(move);
+			if (pieceOnTheTargetLoc !== null) {
+				pieces.splice(pieces.indexOf(pieceOnTheTargetLoc), 1);
+				isRemoved = true;
+			}
+			this.location = move;
+
+			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
+				legalMoves.delete(move);
+			}
+		});
+
+		this.location = actualLocation;
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
 		let legalMoves = new Set();
 
 		// Going Up
@@ -490,6 +786,180 @@ class Queen extends Piece {
 	}
 
 	getLegalMoves() {
+		let legalMoves = new Set();
+
+		// Going Up
+		let tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) - 1);
+
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Right
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + tempLoc[1];
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Down
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = tempLoc[0] + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Left
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + tempLoc[1];
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Top-Left
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Bottom-Right
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getNextChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Bottom-Left
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) + 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		// Going Top-Left
+		tempLoc = this.location;
+		while (!this.isOutsideOfBoard(tempLoc)) {
+			legalMoves.add(tempLoc);
+			tempLoc = getPrevChar(tempLoc[0]) + "" + (parseInt(tempLoc[1]) - 1);
+			let piece = getPieceByLoc(tempLoc);
+			if (piece !== null) {
+				if (piece !== null && piece.name.startsWith(this.name[0])) {
+					// There is a friendly piece on the target location
+					break;
+				} else {
+					// There is an enemy piece on the target location
+					legalMoves.add(tempLoc);
+					break;
+				}
+			}
+		}
+
+		legalMoves.delete(this.location);
+
+		// If moving the piece causes the king to be under attack, delete that move.
+		let actualLocation = this.location;
+		let king = TURN === "w" ? WHITE_KING : BLACK_KING;
+
+		legalMoves.forEach((move) => {
+			let isRemoved = false;
+			let pieceOnTheTargetLoc = getPieceByLoc(move);
+			if (pieceOnTheTargetLoc !== null) {
+				pieces.splice(pieces.indexOf(pieceOnTheTargetLoc), 1);
+				isRemoved = true;
+			}
+			this.location = move;
+
+			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
+				legalMoves.delete(move);
+			}
+		});
+
+		this.location = actualLocation;
+
+		return legalMoves;
+	}
+
+	getLegalAttacks() {
 		let legalMoves = new Set();
 
 		// Going Up
@@ -790,7 +1260,53 @@ function getPrevChar(char) {
 }
 
 function move(loc1, loc2) {
-	// ADD CASTLE OPTION
+	if (loc2 === "LC") {
+		// Left castle
+
+		// Move the king 2 positions to the left
+		let king = getPieceByLoc(loc1);
+		let newLoc = getPrevChar(getPrevChar(king.location[0])) + "" + king.location[1];
+		squares.get(newLoc).src = squares.get(loc1).src;
+		king.location = newLoc;
+		squares.get(loc1).src = transparentSVG.src;
+
+		// Move the rook right to the king
+		let rook = getPieceByLoc(getPrevChar(getPrevChar(king.location[0])) + "" + king.location[1]);
+		let rookOldLoc = rook.location;
+		newLoc = getNextChar(king.location[0]) + "" + king.location[1];
+		squares.get(newLoc).src = squares.get(rook.location).src;
+		rook.location = newLoc;
+		squares.get(rookOldLoc).src = transparentSVG.src;
+		return;
+	} else if (loc2 === "RC") {
+		// Right castle
+
+		// Move the king 2 positions to the right
+		let king = getPieceByLoc(loc1);
+		let newLoc = getNextChar(getNextChar(king.location[0])) + "" + king.location[1];
+		squares.get(newLoc).src = squares.get(loc1).src;
+		king.location = newLoc;
+		squares.get(loc1).src = transparentSVG.src;
+		king.hasMoved = true;
+
+		// Move the rook left to the king
+		let rook = getPieceByLoc(getNextChar(king.location[0]) + "" + king.location[1]);
+		let rookOldLoc = rook.location;
+		newLoc = getPrevChar(king.location[0]) + "" + king.location[1];
+		squares.get(newLoc).src = squares.get(rook.location).src;
+		rook.location = newLoc;
+		squares.get(rookOldLoc).src = transparentSVG.src;
+		rook.hasMoved = true;
+		return;
+	}
+
+	let targetPiece = getPieceByLoc(loc2);
+	if (targetPiece !== null) {
+		// There is a piece at the target location, eat the piece
+		pieces.splice(pieces.indexOf(targetPiece), 1); // Remove target piece from pieces list
+	}
+
+	getPieceByLoc(loc1).hasMoved = true;
 	getPieceByLoc(loc1).location = loc2;
 	squares.get(loc2).src = squares.get(loc1).src;
 	squares.get(loc1).src = transparentSVG.src;
@@ -839,7 +1355,7 @@ function roomChoiceAnimation() {
 	});
 }
 
-function scrollTo(element) {
+function scrollToElement(element) {
 	element.scrollIntoView({
 		behavior: "smooth",
 		block: "center",
@@ -866,10 +1382,12 @@ function highlightLegalMoves(legalMoves) {
 	legalMoves.forEach((loc) => {
 		if (loc === "LC") {
 			// Left Castle
-			squares.get("c8").classList.add("highlight");
+			let loc = TURN === "b" ? "c1" : "c8";
+			squares.get(loc).classList.add("highlight");
 		} else if (loc === "RC") {
 			// Right Castle
-			squares.get("g8").classList.add("highlight");
+			let loc = TURN === "b" ? "g1" : "g8";
+			squares.get(loc).classList.add("highlight");
 		} else {
 			squares.get(loc).classList.add("highlight");
 		}
@@ -888,19 +1406,10 @@ function isUnderAttackBy(loc, type) {
 	if (type === "w") {
 		pieces.forEach((piece) => {
 			if (piece.name.startsWith("w")) {
-				if (piece instanceof King) {
-					let piecesLegalMoves = piece.getLegalAttacks();
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
-				} else {
-					let piecesLegalMoves = piece.getLegalMoves();
-					console.log(counter++);
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
+				let piecesLegalMoves = piece.getLegalAttacks();
+				if (piecesLegalMoves.has(loc)) {
+					isPieceUnderAttack = true;
+					return;
 				}
 			}
 		});
@@ -908,18 +1417,10 @@ function isUnderAttackBy(loc, type) {
 		// type -> "b"
 		pieces.forEach((piece) => {
 			if (piece.name.startsWith("b")) {
-				if (piece instanceof King) {
-					let piecesLegalMoves = piece.getLegalAttacks();
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
-				} else {
-					let piecesLegalMoves = piece.getLegalMoves();
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
+				let piecesLegalMoves = piece.getLegalAttacks();
+				if (piecesLegalMoves.has(loc)) {
+					isPieceUnderAttack = true;
+					return;
 				}
 			}
 		});
@@ -933,28 +1434,23 @@ function isKingUnderAttack(loc, type) {
 	let isPieceUnderAttack = false;
 	if (type === "w") {
 		pieces.forEach((piece) => {
-			if (piece.name.startsWith("w")) {
-				if (!piece instanceof King) {
-					let piecesLegalMoves = piece.getLegalMoves();
-					console.log(counter++);
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
-				} 
+			if (piece.name.startsWith("w") && !piece.name.includes("king")) {
+				let piecesLegalMoves = piece.getLegalAttacks();
+				if (piecesLegalMoves.has(loc)) {
+					isPieceUnderAttack = true;
+					return;
+				}
 			}
 		});
 	} else {
 		// type -> "b"
 		pieces.forEach((piece) => {
-			if (piece.name.startsWith("b")) {
-				if (!piece instanceof King) {
-					let piecesLegalMoves = piece.getLegalMoves();
-					if (piecesLegalMoves.has(loc)) {
-						isPieceUnderAttack = true;
-						return;
-					}
-				} 
+			if (piece.name.startsWith("b") && !piece.name.includes("king")) {
+				let piecesLegalMoves = piece.getLegalAttacks();
+				if (piecesLegalMoves.has(loc)) {
+					isPieceUnderAttack = true;
+					return;
+				}
 			}
 		});
 	}
@@ -1038,6 +1534,62 @@ function turnTable() {
 	}
 }
 
+function getLocFromCastle(castle) {
+	if (castle === "LC") {
+		return TURN === "w" ? "c8" : "c1";
+	} else if (castle === "RC") {
+		return TURN === "w" ? "g8" : "g1";
+	} else {
+		console.log("wtf!");
+	}
+}
+
+function isCheckMate() {
+	if (WHITE_KING.getLegalMoves().size === 0 && isKingUnderAttack(WHITE_KING.location, "b")) {
+		// Black won!
+		console.log("Black Won!");
+		return "b";
+	} else if (BLACK_KING.getLegalMoves().size === 0 && isKingUnderAttack(BLACK_KING.location, "w")) {
+		// White won!
+		console.log("White Won!");
+		return "w";
+	} else {
+		// Nobody Won!
+		return null;
+	}
+}
+
+function gameOverPanel(winner) {
+	let panel = document.createElement("div");
+	body.appendChild(panel);
+	panel.classList.add("gameOverPanel");
+	panel.style.left = 0;
+	panel.style.top = 0;
+	delay(1).then(() => {
+		panel.classList.add("blur");
+	});
+
+	delay(500).then(() => {
+		let text = document.createElement("h1");
+		text.innerText = winner === "w" ? "White Won!" : "Black Won!";
+		text.classList.add("gameOverText");
+		panel.appendChild(text);
+
+		let button = document.createElement("button");
+		button.innerText = "Play Again!";
+		button.classList.add("gameOverButton");
+		panel.appendChild(button);
+		button.addEventListener("click", () => {
+			location.reload();
+		});
+
+		delay(100).then(() => {
+			text.classList.add("startAnimInput");
+			button.classList.add("startAnimButton");
+		});
+	});
+}
+
 /****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Starts   |   |   |   |   |   |   |   |   |   |
 ****************************************************************************************/
@@ -1056,8 +1608,12 @@ window.addEventListener("load", async () => {
 
 window.addEventListener("resize", () => {
 	if (GAME_STARTED) {
-		scrollTo(board);
+		scrollToElement(board);
 	}
+});
+
+window.addEventListener("beforeunload", () => {
+	window.scrollTo(0, 0);
 });
 
 board.addEventListener("click", (event) => {
@@ -1070,6 +1626,7 @@ board.addEventListener("click", (event) => {
 		if (selectedPieceLoc === null) {
 			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
 				currentLegalMoves = selectedPiece.getLegalMoves();
+				console.log(currentLegalMoves);
 				highlightLegalMoves(currentLegalMoves);
 				selectedPieceLoc = clickedLoc;
 			} else {
@@ -1078,33 +1635,58 @@ board.addEventListener("click", (event) => {
 		} else {
 			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
 				currentLegalMoves = selectedPiece.getLegalMoves();
+				console.log(currentLegalMoves);
 				highlightLegalMoves(currentLegalMoves);
 				selectedPieceLoc = clickedLoc;
 			} else if (currentLegalMoves.has(clickedLoc)) {
 				move(selectedPieceLoc, clickedLoc);
 				selectedPieceLoc = null;
 				TURN = TURN === "w" ? "b" : "w";
-				turnTable();
+				if (!isMobile()) {
+					delay(350).then(() => {
+						turnTable();
+					});
+					// https://youtu.be/XmLnHPx_q2A
+				}
+			} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
+				if (clickedLoc === getLocFromCastle("LC")) {
+					move(selectedPieceLoc, "LC");
+				} else if (clickedLoc === getLocFromCastle("RC")) {
+					move(selectedPieceLoc, "RC");
+				}
+				selectedPieceLoc = null;
+				TURN = TURN === "w" ? "b" : "w";
+				if (!isMobile()) {
+					delay(350).then(() => {
+						turnTable();
+					});
+					// https://youtu.be/XmLnHPx_q2A
+				}
 			}
 		}
 	} else {
 		// GAME_TYPE -> ONLINE
 	}
+
+	let isMate = isCheckMate();
+	if (isMate === "b" || isMate === "w") {
+		gameOverPanel(isMate);
+	}
 });
 
 document.getElementById("startButton").addEventListener("click", () => {
-	scrollTo(document.getElementById("online_choice"));
+	scrollToElement(document.getElementById("online_choice"));
 	onlineChoiceAnimation();
 });
 
 document.getElementById("offline_button").addEventListener("click", () => {
 	GAME_TYPE = "OFFLINE";
-	scrollTo(board);
+	scrollToElement(board);
 });
 
 document.getElementById("online_button").addEventListener("click", () => {
 	GAME_TYPE = "ONLINE";
-	scrollTo(document.getElementById("room_choice"));
+	scrollToElement(document.getElementById("room_choice"));
 	roomChoiceAnimation();
 });
 
@@ -1127,7 +1709,7 @@ document.getElementById("create_room").addEventListener("click", () => {
 	// ROOM_ID = roomData.id;
 	PIECE_TYPE = "BLACK";
 	turnTable();
-	scrollTo(board);
+	scrollToElement(board);
 });
 
 document.getElementById("enter_room").addEventListener("click", async () => {
@@ -1144,6 +1726,6 @@ document.getElementById("enter_room").addEventListener("click", async () => {
 		ROOM_ID = data[0].id;
 		PIECE_TYPE = "WHITE";
 		document.getElementById("room_id").innerText = "Room Id: " + ROOM_ID;
-		scrollTo(board);
+		scrollToElement(board);
 	}
 });
