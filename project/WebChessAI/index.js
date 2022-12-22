@@ -20,6 +20,10 @@ var GAME_STARTED = false;
 var PIECE_TYPE = "WHITE";
 var TURN = "w";
 
+/* Online Variables */
+var waitingForOpponent = false;
+var lastOpponentMove = "";
+
 /*****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Classes   |   |   |   |   |   |   |   |   |   |
 *****************************************************************************************/
@@ -1590,6 +1594,22 @@ function gameOverPanel(winner) {
 	});
 }
 
+async function isTheOpponentMoved() {
+	if (waitingForOpponent) {
+		let roomData = await getData(ROOM_ID);
+		let myRoom;
+		roomData.forEach((data) => {
+			if (data.id === ROOM_ID) {
+				myRoom = data;
+				return;
+			}
+		});
+
+		
+	}
+}
+setInterval(isTheOpponentMoved, 2000);
+
 /****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Starts   |   |   |   |   |   |   |   |   |   |
 ****************************************************************************************/
@@ -1638,29 +1658,25 @@ board.addEventListener("click", (event) => {
 				console.log(currentLegalMoves);
 				highlightLegalMoves(currentLegalMoves);
 				selectedPieceLoc = clickedLoc;
-			} else if (currentLegalMoves.has(clickedLoc)) {
-				move(selectedPieceLoc, clickedLoc);
-				selectedPieceLoc = null;
-				TURN = TURN === "w" ? "b" : "w";
+			} else {
+				if (currentLegalMoves.has(clickedLoc)) {
+					move(selectedPieceLoc, clickedLoc);
+					selectedPieceLoc = null;
+					TURN = TURN === "w" ? "b" : "w";
+				} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
+					if (clickedLoc === getLocFromCastle("LC")) {
+						move(selectedPieceLoc, "LC");
+					} else if (clickedLoc === getLocFromCastle("RC")) {
+						move(selectedPieceLoc, "RC");
+					}
+					selectedPieceLoc = null;
+					TURN = TURN === "w" ? "b" : "w";
+				}
 				if (!isMobile()) {
 					delay(350).then(() => {
 						turnTable();
+						// https://youtu.be/XmLnHPx_q2A
 					});
-					// https://youtu.be/XmLnHPx_q2A
-				}
-			} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
-				if (clickedLoc === getLocFromCastle("LC")) {
-					move(selectedPieceLoc, "LC");
-				} else if (clickedLoc === getLocFromCastle("RC")) {
-					move(selectedPieceLoc, "RC");
-				}
-				selectedPieceLoc = null;
-				TURN = TURN === "w" ? "b" : "w";
-				if (!isMobile()) {
-					delay(350).then(() => {
-						turnTable();
-					});
-					// https://youtu.be/XmLnHPx_q2A
 				}
 			}
 		}
@@ -1704,18 +1720,20 @@ document.getElementById("input").addEventListener("focusin", () => {
 	});
 });
 
-document.getElementById("create_room").addEventListener("click", () => {
-	// let roomData = gameStartRequest();
-	// ROOM_ID = roomData.id;
+document.getElementById("create_room").addEventListener("click", async () => {
+	let roomData = await gameStartRequest();
+	ROOM_ID = roomData.id;
+	document.getElementById("room_id").innerText = "Room Id: " + ROOM_ID;
 	PIECE_TYPE = "BLACK";
 	turnTable();
 	scrollToElement(board);
 });
 
-document.getElementById("enter_room").addEventListener("click", async () => {
+document.getElementById("enter_room").addEventListener("click", () => {
 	let roomid = document.getElementById("input").value;
 
-	let data = await getData(roomid);
+	let data = getData(roomid);
+	console.log(data);
 
 	if (data.length == 0) {
 		document.getElementById("input").style.borderBottom = "3px solid red";
