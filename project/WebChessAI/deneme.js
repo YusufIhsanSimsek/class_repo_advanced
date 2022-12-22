@@ -32,8 +32,9 @@ async function getData3(id) {
     xhr.setRequestHeader("Content-Type", "application/json");
 
     const data = {
-        roomid: 23532,
-        move: "asdasdsadsad",
+        lastPlayed: "BLACK",
+        move: "h2m2",
+        id: id
     };
 
     xhr.onload = function () {
@@ -45,4 +46,4 @@ async function getData3(id) {
     xhr.send(JSON.stringify(data));
 }
 
-getData(123);
+getData3(123);

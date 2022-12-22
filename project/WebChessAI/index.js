@@ -17,12 +17,11 @@ var BLACK_KING = null;
 var ROOM_ID = -1;
 var GAME_TYPE = "OFFLINE";
 var GAME_STARTED = false;
-var PIECE_TYPE = "WHITE";
+var PIECE_TYPE = "w";
 var TURN = "w";
 
 /* Online Variables */
-var waitingForOpponent = false;
-var lastOpponentMove = "";
+var waitingForOpponent = true;
 
 /*****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Classes   |   |   |   |   |   |   |   |   |   |
@@ -155,6 +154,10 @@ class Bishop extends Piece {
 
 			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
 				legalMoves.delete(move);
+			}
+
+			if (isRemoved) {
+				pieces.push(pieceOnTheTargetLoc);
 			}
 		});
 
@@ -480,6 +483,10 @@ class Knight extends Piece {
 			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
 				legalMoves.delete(move);
 			}
+
+			if (isRemoved) {
+				pieces.push(pieceOnTheTargetLoc);
+			}
 		});
 
 		this.location = actualLocation;
@@ -568,6 +575,10 @@ class Pawn extends Piece {
 
 			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
 				legalMoves.delete(move);
+			}
+
+			if (isRemoved) {
+				pieces.push(pieceOnTheTargetLoc);
 			}
 		});
 
@@ -694,6 +705,10 @@ class Rook extends Piece {
 
 			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
 				legalMoves.delete(move);
+			}
+
+			if (isRemoved) {
+				pieces.push(pieceOnTheTargetLoc);
 			}
 		});
 
@@ -955,6 +970,10 @@ class Queen extends Piece {
 
 			if (isKingUnderAttack(king.location, TURN === "w" ? "b" : "w")) {
 				legalMoves.delete(move);
+			}
+
+			if (isRemoved) {
+				pieces.push(pieceOnTheTargetLoc);
 			}
 		});
 
@@ -1469,61 +1488,6 @@ function adjustForMobile() {
 	document.getElementById("startButton").className = "button_mobile";
 }
 
-async function gameStartRequest() {
-	let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves`;
-
-	const fetchData = {
-		method: "POST",
-	};
-
-	let varData;
-
-	await fetch(url, fetchData)
-		.then((response) => response.json())
-		.then((data) => {
-			console.log(data);
-			varData = data;
-		});
-
-	return varData;
-}
-
-function sendMoveToServer(move, roomid) {
-	const xhr = new XMLHttpRequest();
-	let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves/${id}`;
-	xhr.open("PUT", url, true);
-	xhr.setRequestHeader("Content-Type", "application/json");
-
-	const data = {
-		roomid: 23532,
-		move: "asdasdsadsad",
-		id: 123,
-	};
-
-	xhr.onload = function () {
-		if (this.status === 200) {
-			console.log(this.response);
-		}
-	};
-
-	xhr.send(JSON.stringify(data));
-}
-
-async function getData(roomid) {
-	let url = "https://639b473531877e43d6882dce.mockapi.io/isochess/moves?id=" + roomid;
-
-	const fetchData = {
-		method: "GET",
-	};
-
-	let varData;
-
-	await fetch(url, fetchData)
-		.then((response) => response.json())
-		.then((data) => (varData = data));
-	return varData;
-}
-
 function turnTable() {
 	if (board.classList.contains("rotate")) {
 		board.classList.remove("rotate");
@@ -1549,14 +1513,46 @@ function getLocFromCastle(castle) {
 }
 
 function isCheckMate() {
-	if (WHITE_KING.getLegalMoves().size === 0 && isKingUnderAttack(WHITE_KING.location, "b")) {
-		// Black won!
-		console.log("Black Won!");
-		return "b";
-	} else if (BLACK_KING.getLegalMoves().size === 0 && isKingUnderAttack(BLACK_KING.location, "w")) {
-		// White won!
-		console.log("White Won!");
-		return "w";
+	if (isKingUnderAttack(WHITE_KING.location, "b")) {
+		// If white king is under attack
+
+		// If there is a legal move, it isn't check mate
+		let isThereMove = false;
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("w") && piece.getLegalMoves().size != 0) {
+				isThereMove = true;
+				return;
+			}
+		});
+
+		if (isThereMove) {
+			// There is a legal move, it isn't check mate
+			return null;
+		} else {
+			// Black won!
+			console.log("Black Won!");
+			return "b";
+		}
+	} else if (isKingUnderAttack(BLACK_KING.location, "w")) {
+		// If black king is under attack
+
+		// If there is a legal move, it isn't check mate
+		let isThereMove = false;
+		pieces.forEach((piece) => {
+			if (piece.name.startsWith("b") && piece.getLegalMoves().size != 0) {
+				isThereMove = true;
+				return;
+			}
+		});
+
+		if (isThereMove) {
+			// There is a legal move, it isn't check mate
+			return null;
+		} else {
+			// White won!
+			console.log("White Won!");
+			return "w";
+		}
 	} else {
 		// Nobody Won!
 		return null;
@@ -1594,21 +1590,97 @@ function gameOverPanel(winner) {
 	});
 }
 
-async function isTheOpponentMoved() {
-	if (waitingForOpponent) {
-		let roomData = await getData(ROOM_ID);
-		let myRoom;
-		roomData.forEach((data) => {
-			if (data.id === ROOM_ID) {
-				myRoom = data;
-				return;
-			}
+async function gameStartRequest() {
+	let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves`;
+
+	const fetchData = {
+		method: "POST",
+	};
+
+	let varData;
+
+	await fetch(url, fetchData)
+		.then((response) => response.json())
+		.then((data) => {
+			console.log(data);
+			varData = data;
 		});
 
-		
+	let roomid = varData.id;
+
+	const xhr = new XMLHttpRequest();
+	url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves/${roomid}`;
+	xhr.open("PUT", url, true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+
+	const data = {
+		lastPlayed: "b",
+		move: "firstMove",
+		id: roomid,
+	};
+
+	xhr.onload = function () {
+		if (this.status === 200) {
+			console.log(this.response);
+		}
+	};
+
+	xhr.send(JSON.stringify(data));
+
+	return varData;
+}
+
+async function sendMoveToServer(move, roomid) {
+	const xhr = new XMLHttpRequest();
+	let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves/${roomid}`;
+	xhr.open("PUT", url, true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+
+	const data = {
+		lastPlayed: PIECE_TYPE,
+		move: move,
+		id: roomid,
+	};
+
+	xhr.onload = function () {
+		if (this.status === 200) {
+			console.log(this.response);
+		}
+	};
+
+	xhr.send(JSON.stringify(data));
+}
+
+async function getData(roomid) {
+	let url = `https://639b473531877e43d6882dce.mockapi.io/isochess/moves/${roomid}`;
+
+	const fetchData = {
+		method: "GET",
+	};
+
+	let varData = null;
+
+	await fetch(url, fetchData)
+		.then((response) => response.json())
+		.then((data) => (varData = data));
+	return varData;
+}
+
+async function isTheOpponentMoved() {
+	console.log("waiting...");
+	let roomData = await getData(ROOM_ID);
+
+	if (roomData !== null && roomData.lastPlayed !== PIECE_TYPE) {
+		// Opponent has moved
+		console.log("Opponent moved!");
+		waitingForOpponent = false;
+
+		// Make his move on this table
+		let loc1 = roomData.move[0] + "" + roomData[1];
+		let loc2 = roomData.move[2] + "" + roomData[3];
+		move(loc1, loc2);
 	}
 }
-setInterval(isTheOpponentMoved, 2000);
 
 /****************************************************************************************
 |   |   |   |   |   |   |   |   |   |   JS Starts   |   |   |   |   |   |   |   |   |   |
@@ -1636,9 +1708,10 @@ window.addEventListener("beforeunload", () => {
 	window.scrollTo(0, 0);
 });
 
-board.addEventListener("click", (event) => {
+board.addEventListener("click", async (event) => {
 	let clickedLoc = event.target.id;
 	let selectedPiece = getPieceByLoc(clickedLoc);
+	console.log(clickedLoc, selectedPiece);
 
 	removeHighlights();
 
@@ -1646,7 +1719,6 @@ board.addEventListener("click", (event) => {
 		if (selectedPieceLoc === null) {
 			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
 				currentLegalMoves = selectedPiece.getLegalMoves();
-				console.log(currentLegalMoves);
 				highlightLegalMoves(currentLegalMoves);
 				selectedPieceLoc = clickedLoc;
 			} else {
@@ -1655,33 +1727,77 @@ board.addEventListener("click", (event) => {
 		} else {
 			if (selectedPiece !== null && selectedPiece.name.startsWith(TURN)) {
 				currentLegalMoves = selectedPiece.getLegalMoves();
-				console.log(currentLegalMoves);
 				highlightLegalMoves(currentLegalMoves);
 				selectedPieceLoc = clickedLoc;
 			} else {
 				if (currentLegalMoves.has(clickedLoc)) {
 					move(selectedPieceLoc, clickedLoc);
-					selectedPieceLoc = null;
-					TURN = TURN === "w" ? "b" : "w";
 				} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
 					if (clickedLoc === getLocFromCastle("LC")) {
 						move(selectedPieceLoc, "LC");
 					} else if (clickedLoc === getLocFromCastle("RC")) {
 						move(selectedPieceLoc, "RC");
 					}
+				} else {
 					selectedPieceLoc = null;
-					TURN = TURN === "w" ? "b" : "w";
+					return;
 				}
+
+				selectedPieceLoc = null;
+				TURN = TURN === "w" ? "b" : "w";
 				if (!isMobile()) {
-					delay(350).then(() => {
-						turnTable();
-						// https://youtu.be/XmLnHPx_q2A
-					});
+					delay(350).then(turnTable());
+					// https://youtu.be/XmLnHPx_q2A
 				}
 			}
 		}
 	} else {
 		// GAME_TYPE -> ONLINE
+		if (waitingForOpponent) {
+			if (selectedPiece !== null && selectedPiece.name.startsWith(PIECE_TYPE)) {
+				let currentLegalMoves = selectedPiece.getLegalMoves();
+				highlightLegalMoves(currentLegalMoves);
+			} else {
+				return;
+			}
+		} else {
+			// My turn
+			if (selectedPieceLoc === null) {
+				if (selectedPiece !== null && selectedPiece.name.startsWith(PIECE_TYPE)) {
+					currentLegalMoves = selectedPiece.getLegalMoves();
+					highlightLegalMoves(currentLegalMoves);
+					selectedPieceLoc = clickedLoc;
+				} else {
+					selectedPieceLoc = null;
+				}
+			} else {
+				if (selectedPiece !== null && selectedPiece.name.startsWith(PIECE_TYPE)) {
+					currentLegalMoves = selectedPiece.getLegalMoves();
+					highlightLegalMoves(currentLegalMoves);
+					selectedPieceLoc = clickedLoc;
+				} else {
+					if (currentLegalMoves.has(clickedLoc)) {
+						move(selectedPieceLoc, clickedLoc);
+						await sendMoveToServer(selectedPieceLoc + "" + clickedLoc, ROOM_ID);
+						waitingForOpponent = true;
+					} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
+						if (clickedLoc === getLocFromCastle("LC")) {
+							move(selectedPieceLoc, "LC");
+							await sendMoveToServer(selectedPieceLoc + "LC", ROOM_ID);
+							waitingForOpponent = true;
+						} else if (clickedLoc === getLocFromCastle("RC")) {
+							move(selectedPieceLoc, "RC");
+							await sendMoveToServer(selectedPieceLoc + "RC", ROOM_ID);
+							waitingForOpponent = true;
+						}
+					} else {
+						selectedPieceLoc = null;
+						return;
+					}
+					selectedPieceLoc = null;
+				}
+			}
+		}
 	}
 
 	let isMate = isCheckMate();
@@ -1706,44 +1822,32 @@ document.getElementById("online_button").addEventListener("click", () => {
 	roomChoiceAnimation();
 });
 
-document.getElementById("input").addEventListener("focusout", () => {
-	delay(100).then(() => {
-		document.getElementById("input").value = "Room Id";
-	});
-});
-
-document.getElementById("input").addEventListener("focusin", () => {
-	delay(100).then(() => {
-		document.getElementById("input").value = "";
-		document.getElementById("input").style.borderBottom = "3px solid #3e2723";
-		document.getElementById("input").style.color = "#3e2723";
-	});
-});
-
 document.getElementById("create_room").addEventListener("click", async () => {
 	let roomData = await gameStartRequest();
 	ROOM_ID = roomData.id;
 	document.getElementById("room_id").innerText = "Room Id: " + ROOM_ID;
-	PIECE_TYPE = "BLACK";
+	PIECE_TYPE = "b";
 	turnTable();
 	scrollToElement(board);
+	setInterval(isTheOpponentMoved, 3000);
 });
 
-document.getElementById("enter_room").addEventListener("click", () => {
+document.getElementById("enter_room").addEventListener("click", async () => {
 	let roomid = document.getElementById("input").value;
 
-	let data = getData(roomid);
-	console.log(data);
+	let roomData = await getData(roomid);
+	console.log(roomData);
 
-	if (data.length == 0) {
+	if (roomData.length == 0) {
 		document.getElementById("input").style.borderBottom = "3px solid red";
 		document.getElementById("input").style.color = "red";
 		document.getElementById("input").value = "Room not found!";
 	} else {
-		console.log(data[0]);
-		ROOM_ID = data[0].id;
-		PIECE_TYPE = "WHITE";
+		ROOM_ID = roomData.id;
+		PIECE_TYPE = "w";
 		document.getElementById("room_id").innerText = "Room Id: " + ROOM_ID;
 		scrollToElement(board);
+		setInterval(isTheOpponentMoved, 3000);
+		waitingForOpponent = false;
 	}
 });
