@@ -1,7 +1,7 @@
 #body {
 	margin: 0 auto;
 	height: 405vh;
-	/* overflow: hidden; */
+	overflow: hidden;
 	background: radial-gradient(farthest-corner, #a69b97, #8d6e63);
 }
 

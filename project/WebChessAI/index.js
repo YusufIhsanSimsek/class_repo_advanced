@@ -1325,16 +1325,16 @@ function move(loc1, loc2) {
 
 	try {
 		let targetPiece = getPieceByLoc(loc2);
-	if (targetPiece !== null) {
-		// There is a piece at the target location, eat the piece
-		pieces.splice(pieces.indexOf(targetPiece), 1); // Remove target piece from pieces list
-	}
+		if (targetPiece !== null) {
+			// There is a piece at the target location, eat the piece
+			pieces.splice(pieces.indexOf(targetPiece), 1); // Remove target piece from pieces list
+		}
 
-	getPieceByLoc(loc1).hasMoved = true;
-	getPieceByLoc(loc1).location = loc2;
-	squares.get(loc2).src = squares.get(loc1).src;
-	squares.get(loc1).src = transparentSVG.src;
-	} catch(error) {
+		getPieceByLoc(loc1).hasMoved = true;
+		getPieceByLoc(loc1).location = loc2;
+		squares.get(loc2).src = squares.get(loc1).src;
+		squares.get(loc1).src = transparentSVG.src;
+	} catch (error) {
 		console.log(error);
 		console.log("loc1: ", loc1);
 		console.log("loc2: ", loc2);
@@ -1731,7 +1731,7 @@ window.addEventListener("beforeunload", () => {
 board.addEventListener("click", async (event) => {
 	let clickedLoc = event.target.id;
 	let selectedPiece = getPieceByLoc(clickedLoc);
-	// console.log(clickedLoc, selectedPiece);
+	console.log(clickedLoc, selectedPiece);
 
 	removeHighlights();
 
@@ -1874,3 +1874,12 @@ document.getElementById("enter_room").addEventListener("click", async () => {
 		waitingForOpponent = false;
 	}
 });
+
+if ("serviceWorker" in navigator) {
+	window.addEventListener("load", function () {
+		navigator.serviceWorker
+			.register("/serviceWorker.js")
+			.then((res) => console.log("service worker registered"))
+			.catch((err) => console.log("service worker not registered", err));
+	});
+}
