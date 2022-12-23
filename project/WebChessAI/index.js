@@ -1667,18 +1667,30 @@ async function getData(roomid) {
 }
 
 async function isTheOpponentMoved() {
-	console.log("waiting...");
-	let roomData = await getData(ROOM_ID);
+	if (waitingForOpponent) {
+		let roomData = await getData(ROOM_ID);
 
-	if (roomData !== null && roomData.lastPlayed !== PIECE_TYPE) {
-		// Opponent has moved
-		console.log("Opponent moved!");
-		waitingForOpponent = false;
+		if (roomData !== null && roomData.lastPlayed !== PIECE_TYPE) {
+			// Opponent has moved
+			waitingForOpponent = false;
 
-		// Make his move on this table
-		let loc1 = roomData.move[0] + "" + roomData[1];
-		let loc2 = roomData.move[2] + "" + roomData[3];
-		move(loc1, loc2);
+			// Make his move on this table
+			let loc1 = roomData.move[0] + "" + roomData.move[1];
+			let loc2 = roomData.move[2] + "" + roomData.move[3];
+			move(loc1, loc2);
+			console.log("Opponent moved " + loc1 + " to " + loc2);
+
+			// Make turn variable my turn
+			TURN = PIECE_TYPE;
+
+			// Check is game over
+			let isMate = isCheckMate();
+			if (isMate === "b" || isMate === "w") {
+				gameOverPanel(isMate);
+			}
+		}
+	} else {
+		console.log("waiting...");
 	}
 }
 
@@ -1780,15 +1792,18 @@ board.addEventListener("click", async (event) => {
 						move(selectedPieceLoc, clickedLoc);
 						await sendMoveToServer(selectedPieceLoc + "" + clickedLoc, ROOM_ID);
 						waitingForOpponent = true;
+						TURN = PIECE_TYPE === "w" ? "b" : "w";
 					} else if (currentLegalMoves.has("LC") || currentLegalMoves.has("RC")) {
 						if (clickedLoc === getLocFromCastle("LC")) {
 							move(selectedPieceLoc, "LC");
 							await sendMoveToServer(selectedPieceLoc + "LC", ROOM_ID);
 							waitingForOpponent = true;
+							TURN = PIECE_TYPE === "w" ? "b" : "w";
 						} else if (clickedLoc === getLocFromCastle("RC")) {
 							move(selectedPieceLoc, "RC");
 							await sendMoveToServer(selectedPieceLoc + "RC", ROOM_ID);
 							waitingForOpponent = true;
+							TURN = PIECE_TYPE === "w" ? "b" : "w";
 						}
 					} else {
 						selectedPieceLoc = null;
