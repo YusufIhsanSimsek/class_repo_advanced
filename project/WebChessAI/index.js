@@ -1878,7 +1878,7 @@ document.getElementById("enter_room").addEventListener("click", async () => {
 if ("serviceWorker" in navigator) {
 	window.addEventListener("load", function () {
 		navigator.serviceWorker
-			.register("/class_repo_advanced/serviceWorker.js")
+			.register("serviceWorker.js")
 			.then((res) => console.log("service worker registered", res))
 			.catch((err) => console.log("service worker not registered", err));
 	});
