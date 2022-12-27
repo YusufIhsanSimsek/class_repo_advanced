@@ -6,6 +6,7 @@
 	"background_color": "#8d6e63",
 	"theme_color": "#3e2723",
 	"orientation": "portrait",
+	"id": "/index.html",
 	"icons": [
 		{
 			"src": "res/icons/72x72.png",
