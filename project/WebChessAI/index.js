@@ -1853,6 +1853,10 @@ document.getElementById("create_room").addEventListener("click", async () => {
 	turnTable();
 	scrollToElement(board);
 	setInterval(isTheOpponentMoved, 3000);
+
+	if (isMobile()) {
+		document.getElementById("room_id").style.transform = "translateY(400px)";
+	}
 });
 
 document.getElementById("enter_room").addEventListener("click", async () => {
@@ -1872,6 +1876,10 @@ document.getElementById("enter_room").addEventListener("click", async () => {
 		scrollToElement(board);
 		setInterval(isTheOpponentMoved, 3000);
 		waitingForOpponent = false;
+	}
+
+	if (isMobile()) {
+		document.getElementById("room_id").style.transform = "translateY(400px)";
 	}
 });
 
